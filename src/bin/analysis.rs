@@ -14,11 +14,9 @@ fn main() {
     let mut errors = 0;
 	for sent in &golddata {
         errors += pp_attachment(&sent, &nongolddata.get(idx).expect("No Token"));
+        idx += 1;
     }
 
-    println!("{:?}", errors);
-	// Dummy sanity check to make sure gold and non-gold data match
-	assert_eq!(golddata[0][0].form(), nongolddata[0][0].form());
-	assert_eq!(golddata[golddata.len()-1][0].form(), nongolddata[nongolddata.len()-1][0].form());
+    println!("Number of errors: {:?}", errors);
 	println!("Done with analysis");
 }
