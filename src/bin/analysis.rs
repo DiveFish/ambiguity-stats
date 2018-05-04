@@ -7,7 +7,7 @@ use ambiguity_stats::read_gng_data;
 static GOLD_DATA: &str = "data/validation.conll";
 static NONGOLD_DATA: &str = "data/validation-nongold.conll";
 
-fn main() {
+pub fn main() {
 	let (golddata, nongolddata) = read_gng_data(GOLD_DATA, NONGOLD_DATA);
 
     let mut idx = 0;

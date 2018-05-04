@@ -7,6 +7,7 @@ use deprels_equal;
 //&[Token] <- reference to slice, allows slices AND vectors
 
 // TODO: Account for ROOT token not being part of the sentence while 0 still used as index for referring to ROOT as head
+// TODO: Also count correct attachments to calculate F1 score!
 pub fn n_incorrect_pp_attachments(gold_sent: &[Token], nongold_sent: &[Token]) -> usize {
 
     assert_eq!(gold_sent.len(), nongold_sent.len());
@@ -15,11 +16,10 @@ pub fn n_incorrect_pp_attachments(gold_sent: &[Token], nongold_sent: &[Token]) -
     let mut idx = 0;
 
     for i in 0..gold_sent.len() {
-        let gold_token = &gold_sent[i];
-        let mut gold_head_idx = gold_token.head().expect("No head");
 
-        // Ignore tokens with ROOT as their head
-        if gold_head_idx == 0 {
+        let gold_token = &gold_sent[i];
+        let mut gold_head_idx = gold_token.head().expect("No head");    //To avoid panic, use `match`
+        if gold_head_idx == 0 { //Ignore tokens with ROOT as head
             continue
         } else {
             gold_head_idx -= 1;
@@ -28,7 +28,7 @@ pub fn n_incorrect_pp_attachments(gold_sent: &[Token], nongold_sent: &[Token]) -
 
         let token = &nongold_sent[i];
         let mut head_idx = token.head().expect("No head idx");
-        if head_idx == 0 {
+        if head_idx == 0 {  //Ignore tokens with ROOT as head
             continue
         } else {
             head_idx -= 1;

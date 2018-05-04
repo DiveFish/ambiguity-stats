@@ -40,19 +40,22 @@ pub fn check_postags(token1: &Token, pos1: &str, token2: &Token, pos2: &str) -> 
 		&& (token2.pos().expect("No PoS tag") == pos2)
 }
 
-
+//TODO: Fix variable initialization
 #[cfg(test)]
 mod tests {
 	use comps::*;
 
 	//use tests::{TOKEN_1, TOKEN_2};
-
-    use data_preps::read_data;
+    use std::fs::File;
+    use std::io::BufReader;
 
     extern crate conllx;
-    use conllx::{Token};
+    use conllx::{Token, Reader, ReadSentence};
 
-    static sent:Vec<Vec<Token>> = read_data("data/testdata.conll");
+    static sent:Vec<Vec<Token>> = Reader::new(BufReader::new(File::open("data/testdata.conll").unwrap()))
+                                        .sentences()
+                                        .map(|s| s.unwrap())
+                                        .collect();
 
 	#[test]
 	fn test_heads_and_deprels_equal() {
