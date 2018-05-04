@@ -6,6 +6,11 @@ extern crate petgraph;
 #[macro_use]
 extern crate lazy_static;
 
-pub mod ambiguities;
-pub mod comps;
-pub mod data_preps;
+mod ambiguities;
+pub use ambiguities::pp_attachment;
+
+mod comps;
+pub use comps::{heads_and_deprels_equal, heads_equal, deprels_equal, postags_equal, check_deprel, check_deprels, check_postag, check_postags};
+
+mod data_preps;
+pub use data_preps::read_gng_data;

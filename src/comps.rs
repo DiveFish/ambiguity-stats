@@ -1,5 +1,5 @@
 extern crate conllx;
-use conllx::{Token};
+use conllx::Token;
 
 /// Utility class for comparing tokens and
 /// specific properties of one or two tokens

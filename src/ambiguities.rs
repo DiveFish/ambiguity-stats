@@ -1,5 +1,9 @@
+extern crate conllx;
+
+use comps::heads_equal;
+use comps::deprels_equal;
+
 use conllx::Token;
-use ambiguity_stats::comps::{heads_equal, deprels_equal};
 
 pub fn pp_attachment(gold_sent: &Vec<Token>, nongold_sent: &Vec<Token>) -> usize {
     let mut errors = 0;
@@ -14,20 +18,16 @@ pub fn pp_attachment(gold_sent: &Vec<Token>, nongold_sent: &Vec<Token>) -> usize
 
             let token = &nongold_sent[i];
             let head_idx = token.head().expect("No head idx");
-            let head = nongold_sent[head_idx];
+            let head = &nongold_sent[head_idx];
             if (token.head_rel().expect("No deprel") == "PP") && deprels_equal(&token, &gold_token)
                 && !heads_equal(&token, &gold_token) {
                 errors += 1;
             }
+            idx += 1;
         }
         /*
-
-
-
-
         println!("{:?}", &gold_sent[i]);
         */
-        idx += 1;
     }
     errors
 }

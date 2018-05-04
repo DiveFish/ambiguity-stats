@@ -1,11 +1,8 @@
 extern crate conllx;
 extern crate ambiguity_stats;
 
-mod data_preps;
-use data_preps::read_gng_data;
-
-mod ambiguities;
-use ambiguities::pp_attachment;
+use ambiguity_stats::pp_attachment;
+use ambiguity_stats::read_gng_data;
 
 static GOLD_DATA: &str = "data/validation.conll";
 static NONGOLD_DATA: &str = "data/validation-nongold.conll";
