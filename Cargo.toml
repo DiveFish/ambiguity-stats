@@ -1,0 +1,8 @@
+[package]
+name = "ambiguity-stats"
+version = "0.1.0"
+authors = ["DiveFish"]
+
+[dependencies]
+conllx = "0.10.2"
+petgraph = "0.4.12"
