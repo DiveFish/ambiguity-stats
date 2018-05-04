@@ -15,11 +15,13 @@ pub fn pp_attachment(gold_sent: &Vec<Token>, nongold_sent: &Vec<Token>) -> usize
             let gold_token = &gold_sent[i];
             //@Daniël: How to avoid expect() everywhere an Option is returned? Or how to make it more elegant?
             let gold_head_idx = gold_token.head().expect("No head");
+            let gold_pos = token.pos().expect("No deprel");
 
             let token = &nongold_sent[i];
             let head_idx = token.head().expect("No head idx");
             let head = &nongold_sent[head_idx];
-            if (token.head_rel().expect("No deprel") == "PP") && deprels_equal(&token, &gold_token)
+
+            if (gold_pos == "PREP") && deprels_equal(&token, &gold_token)
                 && !heads_equal(&token, &gold_token) {
                 errors += 1;
             }
