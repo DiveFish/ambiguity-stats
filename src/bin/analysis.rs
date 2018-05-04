@@ -20,5 +20,5 @@ fn main() {
 	// Dummy sanity check to make sure gold and non-gold data match
 	assert_eq!(golddata[0][0].form(), nongolddata[0][0].form());
 	assert_eq!(golddata[golddata.len()-1][0].form(), nongolddata[nongolddata.len()-1][0].form());
-	println!("Done in main.rs");
+	println!("Done with analysis");
 }
