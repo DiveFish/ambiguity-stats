@@ -1,7 +1,7 @@
 extern crate conllx;
 extern crate ambiguity_stats;
 
-use ambiguity_stats::pp_attachment;
+use ambiguity_stats::n_incorrect_pp_attachments;
 use ambiguity_stats::read_gng_data;
 
 static GOLD_DATA: &str = "data/validation.conll";
@@ -13,7 +13,7 @@ fn main() {
     let mut idx = 0;
     let mut errors = 0;
 	for sent in &golddata {
-        errors += pp_attachment(&sent, &nongolddata.get(idx).expect("No Token"));
+        errors += n_incorrect_pp_attachments(&sent, &nongolddata.get(idx).expect("No Token"));
         idx += 1;
     }
 

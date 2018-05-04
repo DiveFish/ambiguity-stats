@@ -7,7 +7,7 @@ extern crate petgraph;
 extern crate lazy_static;
 
 mod ambiguities;
-pub use ambiguities::pp_attachment;
+pub use ambiguities::n_incorrect_pp_attachments;
 
 mod comps;
 pub use comps::{heads_and_deprels_equal, heads_equal, deprels_equal, postags_equal, check_deprel, check_deprels, check_postag, check_postags};
