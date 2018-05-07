@@ -6,6 +6,7 @@ use deprels_equal;
 
 //&[Token] <- reference to slice, allows slices AND vectors
 
+// TODO: Add wrapper method to call any of the ambiguity count functions, signature: pub fn get_ambiguity_counts(gold_sent: &[Token], nongold_sent: &[Token], fun: Function) -> usize
 // TODO: Account for ROOT token not being part of the sentence while 0 still used as index for referring to ROOT as head
 // TODO: Also count correct attachments to calculate F1 score!
 pub fn n_incorrect_pp_attachments(gold_sent: &[Token], nongold_sent: &[Token]) -> usize {
