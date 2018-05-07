@@ -167,8 +167,58 @@ pub fn n_verb_particles(gold_sent: &[Token], nongold_sent: &[Token]) -> (usize, 
     (overall_verb_particles, errors)
 }
 
-fn n_subj_obj_splits(gold_sent: &[Token], nongold_sent: &[Token]) -> (usize, usize) {
-    unimplemented!()
+pub fn n_subj_obj_splits(gold_sent: &[Token], nongold_sent: &[Token]) -> (usize, usize) {
+
+    assert_eq!(gold_sent.len(), nongold_sent.len());
+
+    let mut overall_subj_objs_separations = 0;
+    let mut errors = 0;
+
+    let mut gold_subjidx = 0;
+    let mut gold_objidx = 0;
+    let mut objidx = 0;
+
+    for i in 0..gold_sent.len() {
+
+        let gold_token = &gold_sent[i];
+        let mut gold_head = gold_token.head().expect("No head");
+        if gold_head == 0 {  //Ignore tokens with ROOT as head
+            continue
+        } else {
+            gold_head -= 1;
+        }
+        let gold_deprel = gold_token.head_rel().expect("No deprel");
+
+        let token = &nongold_sent[i];
+        let mut token_head = token.head().expect("No head");
+        if token_head == 0 {  //Ignore tokens with ROOT as head
+            continue
+        } else {
+            token_head -= 1;
+        }
+        let token_deprel = token.head_rel().expect("No deprel");
+
+        if gold_deprel == "SUBJ" && token.pos().expect("No PoS tag").starts_with("N") {
+            gold_subjidx = i;
+            if token_deprel.starts_with("OBJ") {
+                objidx = i;
+            }
+        } else if gold_deprel == "OBJA" || gold_deprel == "OBJD"
+            && token.pos().expect("No PoS tag").starts_with("N") {
+            gold_objidx = i;
+        }
+
+        if gold_subjidx > 0 && gold_objidx > 0 && gold_objidx == (gold_subjidx+1) {
+            overall_subj_objs_separations += 1;
+            if objidx > 0 && objidx != gold_objidx {
+                errors += 1;
+            }
+            gold_subjidx = 0;
+            gold_objidx = 0;
+            objidx = 0;
+        }
+    }
+    (overall_subj_objs_separations, errors)
 }
 
 pub fn n_coordinations(gold_sent: &[Token], nongold_sent: &[Token]) -> (usize, usize) {
