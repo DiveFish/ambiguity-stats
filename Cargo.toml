@@ -6,6 +6,7 @@ authors = ["DiveFish"]
 [dependencies]
 conllx = "0.10.2"
 petgraph = "0.4.12"
+clap = "2.31.2"
 
 [dev-dependencies]
 lazy_static = "1.0.0"
