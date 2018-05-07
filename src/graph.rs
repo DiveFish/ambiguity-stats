@@ -54,7 +54,7 @@ pub fn sentence_to_graph(sentence: &Sentence, projective: bool) -> DependencyGra
 pub fn first_matching_edge<F>(
     graph: &DependencyGraph,
     index: NodeIndex,
-    direction: EdgeDirection,
+    direction: EdgeDirection,   //Outgoing, Incoming
     predicate: F,
 ) -> Option<NodeIndex>
 where
