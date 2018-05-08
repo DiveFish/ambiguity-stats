@@ -2,7 +2,7 @@ extern crate clap;
 extern crate ambiguity_stats;
 
 use clap::{Arg, App};
-use ambiguity_stats::{n_pp_attachments, n_pp_objps, n_obj_frontings, n_verb_particles, n_subj_obj_splits, n_coordinations};
+use ambiguity_stats::{get_ambiguity_counts, n_pp_attachments, n_pp_objps, n_obj_frontings, n_verb_particles, n_subj_obj_splits, n_coordinations};
 use ambiguity_stats::read_gng_data;
 
 pub fn main() {
@@ -28,7 +28,7 @@ pub fn main() {
     let mut overall_counts = 0;
     let mut errors = 0;
 	for sent in &golddata {
-        let (overall_count, error) = n_subj_obj_splits(&sent, &nongolddata.get(idx).expect("No sentence"));
+        let (overall_count, error) = get_ambiguity_counts(&sent, &nongolddata.get(idx).expect("No sentence"), n_subj_obj_splits);
         overall_counts += overall_count;
         errors += error;
         idx += 1;

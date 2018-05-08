@@ -4,9 +4,11 @@ use conllx::Token;
 use heads_equal;
 use deprels_equal;
 
-//&[Token] <- reference to slice, allows slices AND vectors
+pub fn get_ambiguity_counts(gold_sent: &[Token], nongold_sent: &[Token], fun: fn(&[Token], &[Token]) -> (usize, usize)) -> (usize, usize) {
+    assert_eq!(gold_sent.len(), nongold_sent.len());
+    fun(gold_sent, nongold_sent)
+}
 
-// TODO: Add wrapper method to call any of the ambiguity count functions, signature: pub fn get_ambiguity_counts(gold_sent: &[Token], nongold_sent: &[Token], fun: Function) -> usize
 pub fn n_pp_attachments(gold_sent: &[Token], nongold_sent: &[Token]) -> (usize, usize) {
 
     assert_eq!(gold_sent.len(), nongold_sent.len());
