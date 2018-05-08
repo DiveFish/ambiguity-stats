@@ -10,6 +10,7 @@ pub fn get_ambiguity_counts(gold_sent: &[Token], nongold_sent: &[Token], fun: fn
     (overall_occurrences, errors)
 }
 
+/// Count PP attachments and errors made in such cases.
 pub fn n_pp_attachments(overall_pps: &mut usize, errors: &mut usize, gold_sent: &[Token], nongold_sent: &[Token]) {
 
     for i in 0..gold_sent.len() {
@@ -41,6 +42,8 @@ pub fn n_pp_attachments(overall_pps: &mut usize, errors: &mut usize, gold_sent: 
     }
 }
 
+/// Count PPs and OBJPs and errors made in the assignment of the correct dependency label,
+/// i.e. confusion between PP and OBJP.
 pub fn n_pp_objps(overall_pps: &mut usize, errors: &mut usize, gold_sent: &[Token], nongold_sent: &[Token]) {
 
     for i in 0..gold_sent.len() {
@@ -61,6 +64,8 @@ pub fn n_pp_objps(overall_pps: &mut usize, errors: &mut usize, gold_sent: &[Toke
     }
 }
 
+/// Count fronted objects as in the example "Rosen warfen die Frauen."
+/// and errors made in such cases.
 pub fn n_obj_frontings(overall_frontedobjs: &mut usize, errors: &mut usize, gold_sent: &[Token], nongold_sent: &[Token]) {
 
     let mut gold_subjidx = 0;
@@ -113,6 +118,8 @@ pub fn n_obj_frontings(overall_frontedobjs: &mut usize, errors: &mut usize, gold
     }
 }
 
+/// Count ambiguous verb particles as in the example "Was haben Teilnehmer von Lehrgängen, ..."
+/// and errors made in such cases.
 pub fn n_verb_particles(overall_verb_particles: &mut usize, errors: &mut usize, gold_sent: &[Token], nongold_sent: &[Token]) {
 
     for i in 0..gold_sent.len() {
@@ -144,6 +151,8 @@ pub fn n_verb_particles(overall_verb_particles: &mut usize, errors: &mut usize, 
     }
 }
 
+/// Count cases where it is difficult to separate subject and object,
+/// as in the example "... weil IBM Oracle Geld gibt.", and errors made in such cases.
 pub fn n_subj_obj_splits(overall_subj_objs_separations: &mut usize, errors: &mut usize, gold_sent: &[Token], nongold_sent: &[Token]) {
 
     let mut gold_subjidx = 0;
@@ -213,6 +222,8 @@ pub fn n_coordinations(overall_coords: &mut usize, errors: &mut usize, gold_sent
     }
 }
 
+/// Count adjective ambiguities as in the example "How slow horses run."
+/// and errors made by the parser in such cases.
 pub fn n_adjectives(overall_adjs: &mut usize, errors: &mut usize, gold_sent: &[Token], nongold_sent: &[Token]) {
 
     for i in 0..gold_sent.len() {
