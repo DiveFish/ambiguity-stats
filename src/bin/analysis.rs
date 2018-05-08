@@ -2,7 +2,7 @@ extern crate clap;
 extern crate ambiguity_stats;
 
 use clap::{Arg, App};
-use ambiguity_stats::{get_ambiguity_counts, n_pp_attachments, n_pp_objps, n_obj_frontings, n_verb_particles, n_subj_obj_splits, n_coordinations};
+use ambiguity_stats::{get_ambiguity_counts, n_pp_attachments, n_pp_objps, n_obj_frontings, n_verb_particles, n_subj_obj_splits, n_coordinations, n_adjectives};
 use ambiguity_stats::read_gng_data;
 
 pub fn main() {
@@ -28,13 +28,13 @@ pub fn main() {
     let mut overall_counts = 0;
     let mut errors = 0;
 	for sent in &golddata {
-        let (overall_count, error) = get_ambiguity_counts(&sent, &nongolddata.get(idx).expect("No sentence"), n_subj_obj_splits);
+        let (overall_count, error) = get_ambiguity_counts(&sent, &nongolddata.get(idx).expect("No sentence"), n_adjectives);
         overall_counts += overall_count;
         errors += error;
         idx += 1;
     }
-    println!("Number of adjacent subj-obj pairs: {:?}", overall_counts);
-    println!("Number of subj-obj split errors: {:?}", errors);
+    println!("Number of ambiguous adjectives: {:?}", overall_counts);
+    println!("Number of adjective ambiguity errors: {:?}", errors);
     let ratio = errors as f32 / (overall_counts/100) as f32;
     println!("Error ratio: {:?}", ratio);
 	println!("Done with analysis");
