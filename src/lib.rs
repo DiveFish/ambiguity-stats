@@ -7,10 +7,10 @@ extern crate petgraph;
 extern crate lazy_static;
 
 mod ambiguities;
-pub use ambiguities::{get_ambiguity_counts, n_pp_attachments, n_pp_objps, n_obj_frontings, n_verb_particles, n_subj_obj_splits, n_coordinations, n_adjectives};
+pub use ambiguities::*;
 
 mod comps;
-pub use comps::{heads_and_deprels_equal, heads_equal, deprels_equal, postags_equal, check_deprel, check_deprels, check_postag, check_postags};
+pub use comps::*;
 
 mod data_preps;
 pub use data_preps::read_gng_data;
