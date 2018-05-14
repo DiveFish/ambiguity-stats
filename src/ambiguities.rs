@@ -10,7 +10,7 @@ pub fn get_ambiguity_counts(gold_sent: &[Token], parser_sent: &[Token], fun: fn(
     (overall_occurrences, errors)
 }
 
-//TODO: Finetuning needed to capture only ambiguous PPs
+//TODO: Finetuning needed to capture only ambiguous PPs, maybe only look at sentences with 2 PPs?
 /// Count PP attachments and errors made in such cases.
 pub fn n_pp_attachments(overall_pps: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
 
@@ -60,15 +60,15 @@ pub fn n_pp_objps(overall_pps: &mut usize, errors: &mut usize, gold_sent: &[Toke
 
         if gold_deprel == "PP" || gold_deprel == "OBJP" {
             *overall_pps += 1;
-            for token in gold_sent {
-                print!("{:?} ", token.form());
-            }
-            println!();
-            println!("{:?\n}", i);
             if gold_deprel == "PP" && token_deprel == "OBJP" {
                 *errors += 1;
             } else if gold_deprel == "OBJP" && token_deprel == "PP" {
                 *errors += 1;
+                for token in gold_sent {
+                    print!("{:?} ", token.form());
+                }
+                println!();
+                println!("{:?\n}", i);
             }
         }
     }
@@ -132,6 +132,7 @@ pub fn n_obj_frontings(overall_frontedobjs: &mut usize, errors: &mut usize, gold
     }
 }
 
+//TODO: Also count cases where noun modifier is mistakenly labeled as a verbal argument?
 /// Count ambiguous verb particles as in the example "Was haben Teilnehmer von Lehrgängen, ..."
 /// and errors made in such cases.
 pub fn n_verb_particles(overall_verb_particles: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
@@ -197,14 +198,14 @@ pub fn n_subj_obj_splits(overall_subj_objs_separations: &mut usize, errors: &mut
 
         if gold_subjidx > 0 && gold_objidx > 0 && gold_objidx == (gold_subjidx+1) {
             *overall_subj_objs_separations += 1;
-            for token in gold_sent {
-                print!("{:?} ", token.form());
-            }
-            println!();
-            println!("{:?\n}", gold_subjidx);
-            println!("{:?\n}", gold_objidx);
             if objidx > 0 && objidx != gold_objidx {
                 *errors += 1;
+                for token in gold_sent {
+                    print!("{:?} ", token.form());
+                }
+                println!();
+                println!("{:?\n}", gold_subjidx);
+                println!("{:?\n}", gold_objidx);
             }
             gold_subjidx = 0;
             gold_objidx = 0;
@@ -239,19 +240,18 @@ pub fn n_coordinations(overall_coords: &mut usize, errors: &mut usize, gold_sent
         if gold_pos == "KON" && gold_pos == token_pos
             && gold_sent[gold_headidx].pos().expect("No PoS tag").starts_with("V") { // Head of coordination is a verb
             *overall_coords += 1;
-            for token in gold_sent {
-                print!("{:?} ", token.form());
-            }
-            println!();
-            println!("{:?\n}", i);
             if gold_headidx != token_headidx {
                 *errors += 1;
+                for token in gold_sent {
+                    print!("{:?} ", token.form());
+                }
+                println!();
+                println!("{:?\n}", i);
             }
         }
     }
 }
 
-//TODO: count only adjectives immediately followed by a noun
 /// Count adjective ambiguities as in the example "How slow horses run."
 /// and errors made by the parser in such cases.
 pub fn n_adjectives(overall_adjs: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
@@ -265,19 +265,28 @@ pub fn n_adjectives(overall_adjs: &mut usize, errors: &mut usize, gold_sent: &[T
         } else {
             gold_headidx -= 1;
         }
-        let gold_headpos = gold_sent[gold_headidx].pos().expect("No PoS tag");
+        let gold_head = &gold_sent[gold_headidx];
+        let gold_headpos = gold_head.pos().expect("No PoS tag");
+
+        let mut gold_npidx = 0;
+        if gold_headidx + 1 > gold_sent.len()-1 {  //Ignore tokens with ROOT as head
+            continue
+        } else {
+            gold_npidx = gold_headidx + 1;
+        }
+        let gold_headheadpos = &gold_sent[gold_npidx].pos().expect("No PoS tag");
 
         let token = &parser_sent[i];
         let token_pos = token.pos().expect("No PoS tag");
 
-        if gold_pos == "PWAV" && gold_headpos == "ADJD" { //|| (gold_pos == "ADJA" && gold_headpos.starts_with("N")) {
+        if gold_pos == "PWAV" && gold_headpos == "ADJD" && gold_headheadpos.starts_with("N") { //|| (gold_pos == "ADJA" && gold_headpos.starts_with("N")) {
             *overall_adjs += 1;
             for token in gold_sent {
                 print!("{:?} ", token.form());
             }
             println!();
             println!("{:?\n}", i);
-            if token_pos == "PWAV" {
+            if token_pos != "PWAV" {
                 *errors += 1;
             }
         }
