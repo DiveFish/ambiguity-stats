@@ -12,7 +12,7 @@ pub fn get_ambiguity_counts(gold_sent: &[Token], parser_sent: &[Token], fun: fn(
 
 //TODO: Finetuning needed to capture only ambiguous PPs, maybe only look at sentences with 2 PPs?
 /// Count PP attachments and errors made in such cases.
-pub fn n_pp_attachments(overall_pps: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
+pub fn n_pp_ambig(overall_pps: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
 
     for i in 0..gold_sent.len() {
         let gold_token = &gold_sent[i];
@@ -49,7 +49,7 @@ pub fn n_pp_attachments(overall_pps: &mut usize, errors: &mut usize, gold_sent: 
 
 /// Count PPs and OBJPs and errors made in the assignment of the correct dependency label,
 /// i.e. confusion between PP and OBJP.
-pub fn n_pp_objps(overall_pps: &mut usize, errors: &mut usize, gold_sent: &[Token], nongold_sent: &[Token]) {
+pub fn n_pp_objps_ambig(overall_pps: &mut usize, errors: &mut usize, gold_sent: &[Token], nongold_sent: &[Token]) {
 
     for i in 0..gold_sent.len() {
         let gold_token = &gold_sent[i];
@@ -76,7 +76,7 @@ pub fn n_pp_objps(overall_pps: &mut usize, errors: &mut usize, gold_sent: &[Toke
 
 /// Count fronted objects as in the example "Rosen warfen die Frauen."
 /// and errors made in such cases.
-pub fn n_obj_frontings(overall_frontedobjs: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
+pub fn n_subj_obj_ambig(overall_frontedobjs: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
 
     let mut gold_subjidx = 0;
     let mut gold_objidx = 0;
@@ -112,15 +112,16 @@ pub fn n_obj_frontings(overall_frontedobjs: &mut usize, errors: &mut usize, gold
 
         if gold_deprel == "-PUNCT-" || i == gold_sent.len()-1 { // For every clause
             if gold_subjidx > 0 && gold_objidx > 0 && gold_objidx < gold_subjidx && !is_relcl { // Fronted object
-                for token in gold_sent {
-                    print!("{:?} ", token.form());
-                }
-                println!();
-                println!("{:?\n}", gold_subjidx);
-                println!("{:?\n}", gold_objidx);
+
                 *overall_frontedobjs += 1;
                 if subjidx > 0 {
                     *errors += 1;
+                    for token in gold_sent {
+                        print!("{:?} ", token.form());
+                    }
+                    println!();
+                    println!("{:?\n}", gold_subjidx);
+                    println!("{:?\n}", gold_objidx);
                 }
             }
             gold_subjidx = 0;
@@ -135,7 +136,7 @@ pub fn n_obj_frontings(overall_frontedobjs: &mut usize, errors: &mut usize, gold
 //TODO: Also count cases where noun modifier is mistakenly labeled as a verbal argument?
 /// Count ambiguous verb particles as in the example "Was haben Teilnehmer von Lehrgängen, ..."
 /// and errors made in such cases.
-pub fn n_verb_particles(overall_verb_particles: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
+pub fn n_particle_prep_ambig(overall_verb_particles: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
 
     for i in 0..gold_sent.len() {
         let gold_token = &gold_sent[i];
@@ -159,13 +160,13 @@ pub fn n_verb_particles(overall_verb_particles: &mut usize, errors: &mut usize, 
         if (gold_deprel == "PP" || gold_deprel == "OBJP") && gold_deprel == token_deprel
             && gold_sent[gold_head].pos().expect("No deprel").starts_with("V") { // Head of PP is a verb
             *overall_verb_particles += 1;
-            for token in gold_sent {
-                print!("{:?} ", token.form());
-            }
-            println!();
-            println!("{:?\n}", i);
             if parser_sent[token_head].pos().expect("No deprel").starts_with("N") {
                 *errors += 1;
+                for token in gold_sent {
+                    print!("{:?} ", token.form());
+                }
+                println!();
+                println!("{:?\n}", i);
             }
         }
     }
@@ -173,10 +174,11 @@ pub fn n_verb_particles(overall_verb_particles: &mut usize, errors: &mut usize, 
 
 /// Count cases where it is difficult to separate subject and object,
 /// as in the example "... weil IBM Oracle Geld gibt.", and errors made in such cases.
-pub fn n_subj_obj_splits(overall_subj_objs_separations: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
+pub fn n_appo_phrase_ambig(overall_subj_objs_separations: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
 
     let mut gold_subjidx = 0;
     let mut gold_objidx = 0;
+    let mut subjidx = 0;
     let mut objidx = 0;
 
     for i in 0..gold_sent.len() {
@@ -194,11 +196,14 @@ pub fn n_subj_obj_splits(overall_subj_objs_separations: &mut usize, errors: &mut
         } else if gold_deprel == "OBJA" || gold_deprel == "OBJD"
             && token.pos().expect("No PoS tag").starts_with("N") {
             gold_objidx = i;
+            if token_deprel == "SUBJ" {
+                subjidx = i;
+            }
         }
 
-        if gold_subjidx > 0 && gold_objidx > 0 && gold_objidx == (gold_subjidx+1) {
+        if gold_subjidx > 0 && gold_objidx > 0 && (gold_objidx == (gold_subjidx+1) || gold_subjidx == (gold_objidx+1)) {
             *overall_subj_objs_separations += 1;
-            if objidx > 0 && objidx != gold_objidx {
+            if (objidx > 0 && objidx != gold_objidx) || (subjidx > 0 && subjidx != gold_subjidx) {
                 *errors += 1;
                 for token in gold_sent {
                     print!("{:?} ", token.form());
@@ -216,7 +221,7 @@ pub fn n_subj_obj_splits(overall_subj_objs_separations: &mut usize, errors: &mut
 
 //TODO: Count only coordinations in sentences with verb-kon-verb combination?
 /// Count coordinations and errors made in such cases.
-pub fn n_coordinations(overall_coords: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
+pub fn n_coord_ambig(overall_coords: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
 
     for i in 0..gold_sent.len() {
         let gold_token = &gold_sent[i];
@@ -254,7 +259,7 @@ pub fn n_coordinations(overall_coords: &mut usize, errors: &mut usize, gold_sent
 
 /// Count adjective ambiguities as in the example "How slow horses run."
 /// and errors made by the parser in such cases.
-pub fn n_adjectives(overall_adjs: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
+pub fn n_adj_adv_ambig(overall_adjs: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
 
     for i in 0..gold_sent.len() {
         let gold_token = &gold_sent[i];
@@ -295,7 +300,7 @@ pub fn n_adjectives(overall_adjs: &mut usize, errors: &mut usize, gold_sent: &[T
 
 /// Count pronoun-quantifier ambiguities as in the example "I will tell them all my opinions."
 /// and errors made in such cases.
-pub fn n_pronoun_quants(overall_prons: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
+pub fn n_pron_quant_ambig(overall_prons: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
 
     for i in 0..gold_sent.len() {
 
