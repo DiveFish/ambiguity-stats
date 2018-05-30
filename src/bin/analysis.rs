@@ -28,14 +28,32 @@ pub fn main() {
     let mut overall_counts = 0;
     let mut errors = 0;
 	for sent in &golddata {
-        let (overall_count, error) = get_ambiguity_counts(&sent, &parserdata.get(idx).expect("No sentence"), n_appo_phrase_ambig);
+        let (overall_count, error) = get_ambiguity_counts(&sent, &parserdata.get(idx).expect("No sentence"), n_particle_prep_ambig);
         overall_counts += overall_count;
         errors += error;
         idx += 1;
     }
     println!("Number of occurrences: {:?}", overall_counts);
     println!("Number of errors: {:?}", errors);
-    let ratio = errors as f32 / (overall_counts/100) as f32;
+    let ratio = errors as f32 / (overall_counts as f32/100.0);
     println!("Error ratio: {:?}", ratio);
 	println!("Done with analysis");
+
+    let mut all_correct_labels= 0;
+    let mut all_correct_heads= 0;
+    let mut all_label_errors= 0;
+    let mut all_head_errors= 0;
+    idx = 0;
+    for sent in &golddata {
+        let (correct_labels, correct_heads, label_errors, head_errors) = get_error_counts(&sent, &parserdata.get(idx).expect("No sentence"));
+        all_correct_labels += correct_labels;
+        all_correct_heads += correct_heads;
+        all_label_errors += label_errors;
+        all_head_errors += head_errors;
+        idx += 1;
+    }
+    println!("\nCorrect labels {:?}", all_correct_labels);
+    println!("Correct heads {:?}", all_correct_heads);
+    println!("Label errors {:?}", all_label_errors);
+    println!("Head errors {:?}", all_head_errors);
 }

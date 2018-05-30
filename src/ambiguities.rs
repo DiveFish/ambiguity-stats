@@ -1,6 +1,48 @@
 extern crate conllx;
 use conllx::Token;
 
+pub fn get_error_counts(gold_sent: &[Token], parser_sent: &[Token]) -> (usize, usize, usize, usize) {
+
+    let mut correct_labels= 0;
+    let mut correct_heads= 0;
+    let mut label_errors= 0;
+    let mut head_errors= 0;
+
+    for i in 0..gold_sent.len() {
+        let gold_token = &gold_sent[i];
+        let mut gold_headidx = gold_token.head().expect("No head");
+        if gold_headidx == 0 { //Ignore tokens with ROOT as head
+            continue
+        } else {
+            gold_headidx -= 1;
+        }
+        let gold_deprel = gold_token.head_rel().expect("No deprel");
+
+        let token = &parser_sent[i];
+        let mut headidx = token.head().expect("No head idx");
+        if headidx == 0 {  //Ignore tokens with ROOT as head
+            continue
+        } else {
+            headidx -= 1;
+        }
+        let deprel = token.head_rel().expect("No deprel");
+
+        if gold_deprel != deprel {
+            label_errors += 1;
+        } else {
+            correct_labels += 1;
+        }
+
+        if gold_headidx != headidx {
+            head_errors += 1;
+        } else {
+            correct_heads += 1;
+        }
+    }
+
+    (correct_labels, correct_heads, label_errors, head_errors)
+}
+
 pub fn get_ambiguity_counts(gold_sent: &[Token], parser_sent: &[Token], fun: fn(&mut usize, &mut usize, &[Token], &[Token])) -> (usize, usize) {
     assert_eq!(gold_sent.len(), parser_sent.len());
 
@@ -10,7 +52,6 @@ pub fn get_ambiguity_counts(gold_sent: &[Token], parser_sent: &[Token], fun: fn(
     (overall_occurrences, errors)
 }
 
-//TODO: Finetuning needed to capture only ambiguous PPs, maybe only look at sentences with 2 PPs?
 /// Count PP attachments and errors made in such cases.
 pub fn n_pp_ambig(overall_pps: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
 
@@ -35,13 +76,13 @@ pub fn n_pp_ambig(overall_pps: &mut usize, errors: &mut usize, gold_sent: &[Toke
 
         if (gold_deprel == "PP") && gold_deprel == deprel {
             *overall_pps += 1;
-            for token in gold_sent {
-                print!("{:?} ", token.form());
-            }
-            println!();
-            println!("{:?\n}", i);
             if gold_headidx != headidx {
                 *errors += 1;
+                for token in gold_sent {
+                    print!("{:?} ", token.form());
+                }
+                println!();
+                println!("{:?\n}", i);
             }
         }
     }
@@ -133,7 +174,7 @@ pub fn n_subj_obj_ambig(overall_frontedobjs: &mut usize, errors: &mut usize, gol
     }
 }
 
-//TODO: Also count cases where noun modifier is mistakenly labeled as a verbal argument?
+//TODO: Also count cases where noun modifier is mistakenly labeled as a verbal argument, i.e. the reverse case?
 /// Count ambiguous verb particles as in the example "Was haben Teilnehmer von Lehrgängen, ..."
 /// and errors made in such cases.
 pub fn n_particle_prep_ambig(overall_verb_particles: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
@@ -159,7 +200,7 @@ pub fn n_particle_prep_ambig(overall_verb_particles: &mut usize, errors: &mut us
 
         if (gold_deprel == "PP" || gold_deprel == "OBJP") && gold_deprel == token_deprel
             && gold_sent[gold_head].pos().expect("No deprel").starts_with("V") { // Head of PP is a verb
-            *overall_verb_particles += 1;
+            *overall_verb_particles += 1;   //TODO: This counts just the PPs and OBJPs with a verbal head, doesn't it?
             if parser_sent[token_head].pos().expect("No deprel").starts_with("N") {
                 *errors += 1;
                 for token in gold_sent {
@@ -219,7 +260,7 @@ pub fn n_appo_phrase_ambig(overall_subj_objs_separations: &mut usize, errors: &m
     }
 }
 
-//TODO: Count only coordinations in sentences with verb-kon-verb combination?
+//TODO: Count only verb-kon-verb combinations?
 /// Count coordinations and errors made in such cases.
 pub fn n_coord_ambig(overall_coords: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
 
