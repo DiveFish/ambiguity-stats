@@ -79,7 +79,7 @@ pub fn n_pp_ambig(overall_pps: &mut usize, errors: &mut usize, gold_sent: &[Toke
             if gold_headidx != headidx {
                 *errors += 1;
                 for token in gold_sent {
-                    print!("{:?} ", token.form());
+                    print!("{} ", token.form());
                 }
                 println!();
                 println!("{:?\n}", i);
@@ -106,7 +106,7 @@ pub fn n_pp_objps_ambig(overall_pps: &mut usize, errors: &mut usize, gold_sent: 
             } else if gold_deprel == "OBJP" && token_deprel == "PP" {
                 *errors += 1;
                 for token in gold_sent {
-                    print!("{:?} ", token.form());
+                    print!("{} ", token.form());
                 }
                 println!();
                 println!("{:?\n}", i);
@@ -115,13 +115,15 @@ pub fn n_pp_objps_ambig(overall_pps: &mut usize, errors: &mut usize, gold_sent: 
     }
 }
 
+//TODO: update counts in tex file
 /// Count fronted objects as in the example "Rosen warfen die Frauen."
 /// and errors made in such cases.
-pub fn n_subj_obj_ambig(overall_frontedobjs: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
+pub fn n_subj_obj_ambig(overall_subjobjs: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
 
     let mut gold_subjidx = 0;
     let mut gold_objidx = 0;
     let mut subjidx = 0;
+    let mut objidx = 0;
     let mut is_passive = false;  // Exclude passive, relative clauses or reflexives?
     let mut is_relcl = false;
 
@@ -136,7 +138,7 @@ pub fn n_subj_obj_ambig(overall_frontedobjs: &mut usize, errors: &mut usize, gol
         let token = &parser_sent[i];
         let token_deprel = token.head_rel().expect("No deprel");
 
-        if gold_deprel == "OBJD" || gold_deprel == "OBJA" {
+        if gold_deprel.starts_with("OBJ") {
             gold_objidx = i;
             if gold_token.pos().expect("No PoS tag") == "PRELS" {   // Exclude object fronting in relative clauses
                 is_relcl = true;
@@ -146,6 +148,9 @@ pub fn n_subj_obj_ambig(overall_frontedobjs: &mut usize, errors: &mut usize, gol
             }
         } else if gold_deprel == "SUBJ" {
             gold_subjidx = i;
+            if token_deprel.starts_with("OBJ") {
+                objidx = i;
+            }
 
         } else if gold_lemma == "werden%passiv" {   // Exclude passives - currently not used
             is_passive = true;
@@ -153,12 +158,24 @@ pub fn n_subj_obj_ambig(overall_frontedobjs: &mut usize, errors: &mut usize, gol
 
         if gold_deprel == "-PUNCT-" || i == gold_sent.len()-1 { // For every clause
             if gold_subjidx > 0 && gold_objidx > 0 && gold_objidx < gold_subjidx && !is_relcl { // Fronted object
-
-                *overall_frontedobjs += 1;
+                *overall_subjobjs += 1;
                 if subjidx > 0 {
                     *errors += 1;
+                    println!("Inversion error");
                     for token in gold_sent {
-                        print!("{:?} ", token.form());
+                        print!("{} ", token.form());
+                    }
+                    println!();
+                    println!("{:?\n}", gold_subjidx);
+                    println!("{:?\n}", gold_objidx);
+                }
+            } else if gold_subjidx > 0 && gold_objidx > 0 {
+                *overall_subjobjs += 1;
+                if objidx > 0 {
+                    *errors += 1;
+                    println!("Subject mistaken as object");
+                    for token in gold_sent {
+                        print!("{} ", token.form());
                     }
                     println!();
                     println!("{:?\n}", gold_subjidx);
@@ -168,16 +185,17 @@ pub fn n_subj_obj_ambig(overall_frontedobjs: &mut usize, errors: &mut usize, gol
             gold_subjidx = 0;
             gold_objidx = 0;
             subjidx = 0;
+            objidx = 0;
             is_passive = false;
             is_relcl = false;
         }
     }
 }
 
-//TODO: Also count cases where noun modifier is mistakenly labeled as a verbal argument, i.e. the reverse case?
+//TODO: update counts in tex file
 /// Count ambiguous verb particles as in the example "Was haben Teilnehmer von Lehrgängen, ..."
 /// and errors made in such cases.
-pub fn n_particle_prep_ambig(overall_verb_particles: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
+pub fn n_phrasalv_prep_ambig(overall_phrasalv_prep: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
 
     for i in 0..gold_sent.len() {
         let gold_token = &gold_sent[i];
@@ -198,16 +216,29 @@ pub fn n_particle_prep_ambig(overall_verb_particles: &mut usize, errors: &mut us
             token_head -= 1;
         }
 
-        if (gold_deprel == "PP" || gold_deprel == "OBJP") && gold_deprel == token_deprel
-            && gold_sent[gold_head].pos().expect("No deprel").starts_with("V") { // Head of PP is a verb
-            *overall_verb_particles += 1;   //TODO: This counts just the PPs and OBJPs with a verbal head, doesn't it?
-            if parser_sent[token_head].pos().expect("No deprel").starts_with("N") {
-                *errors += 1;
-                for token in gold_sent {
-                    print!("{:?} ", token.form());
+        if (gold_deprel == "PP" || gold_deprel == "OBJP") && gold_deprel == token_deprel {
+            if gold_sent[gold_head].pos().expect("No deprel").starts_with("V") { // Head of PP is a verb
+                *overall_phrasalv_prep += 1;
+                if parser_sent[token_head].pos().expect("No deprel").starts_with("N") {
+                    *errors += 1;
+                    println!("Should be phrasal verb, was NP-attached PP");
+                    for token in gold_sent {
+                        print!("{} ", token.form());
+                    }
+                    println!();
+                    println!("{:?\n}", i);
                 }
-                println!();
-                println!("{:?\n}", i);
+            } else if gold_sent[gold_head].pos().expect("No deprel").starts_with("N") {
+                *overall_phrasalv_prep += 1;
+                if parser_sent[token_head].pos().expect("No deprel").starts_with("V") {
+                    *errors += 1;
+                    println!("Should be NP-attached PP, was phrasal verb");
+                    for token in gold_sent {
+                        print!("{} ", token.form());
+                    }
+                    println!();
+                    println!("{:?\n}", i);
+                }
             }
         }
     }
@@ -247,7 +278,7 @@ pub fn n_appo_phrase_ambig(overall_subj_objs_separations: &mut usize, errors: &m
             if (objidx > 0 && objidx != gold_objidx) || (subjidx > 0 && subjidx != gold_subjidx) {
                 *errors += 1;
                 for token in gold_sent {
-                    print!("{:?} ", token.form());
+                    print!("{} ", token.form());
                 }
                 println!();
                 println!("{:?\n}", gold_subjidx);
@@ -283,14 +314,15 @@ pub fn n_coord_ambig(overall_coords: &mut usize, errors: &mut usize, gold_sent: 
             token_headidx -= 1;
         }
 
-        if gold_pos == "KON" && gold_pos == token_pos
-            && gold_sent[gold_headidx].pos().expect("No PoS tag").starts_with("V") { // Head of coordination is a verb
+        if gold_pos == "KON" && gold_pos == token_pos //{
+            && !gold_sent[gold_headidx].pos().expect("No PoS tag").starts_with("V") { // Head of coordination is a verb
             *overall_coords += 1;
             if gold_headidx != token_headidx {
                 *errors += 1;
                 for token in gold_sent {
-                    print!("{:?} ", token.form());
+                    print!("{} ", token.form());
                 }
+                //println!("{}", parser_sent[token_headidx].pos().expect("No PoS tag"));
                 println!();
                 println!("{:?\n}", i);
             }
@@ -325,15 +357,25 @@ pub fn n_adj_adv_ambig(overall_adjs: &mut usize, errors: &mut usize, gold_sent: 
         let token = &parser_sent[i];
         let token_pos = token.pos().expect("No PoS tag");
 
-        if gold_pos == "PWAV" && gold_headpos == "ADJD" && gold_headheadpos.starts_with("N") { //|| (gold_pos == "ADJA" && gold_headpos.starts_with("N")) {
+        if gold_pos == "PWAV" && gold_headpos == "ADJD" && gold_headheadpos.starts_with("N") {
             *overall_adjs += 1;
-            for token in gold_sent {
-                print!("{:?} ", token.form());
-            }
-            println!();
-            println!("{:?\n}", i);
             if token_pos != "PWAV" {
                 *errors += 1;
+                for token in gold_sent {
+                    print!("{} ", token.form());
+                }
+                println!();
+                println!("{:?\n}", i);
+            }
+        } else if gold_headpos == "ADJA" && gold_headpos.starts_with("N") && i > 0 {
+            *overall_adjs += 1;
+            if token_pos != "ADJA" && parser_sent[i-1].pos().expect("No PoS tag") == "PWAV"{
+                *errors += 1;
+                for token in gold_sent {
+                    print!("{} ", token.form());
+                }
+                println!();
+                println!("{:?\n}", i);
             }
         }
     }
@@ -361,7 +403,7 @@ pub fn n_pron_quant_ambig(overall_prons: &mut usize, errors: &mut usize, gold_se
             if gold_deprel == "OBJD" && (next_gold_deprel == "OBJD" || next_gold_pos == "PIDAT") {
                 *overall_prons += 1;
                 for token in gold_sent {
-                    print!("{:?} ", token.form());
+                    print!("{} ", token.form());
                 }
                 println!();
                 println!("{:?\n}", i);

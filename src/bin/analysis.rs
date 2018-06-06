@@ -28,7 +28,7 @@ pub fn main() {
     let mut overall_counts = 0;
     let mut errors = 0;
 	for sent in &golddata {
-        let (overall_count, error) = get_ambiguity_counts(&sent, &parserdata.get(idx).expect("No sentence"), n_particle_prep_ambig);
+        let (overall_count, error) = get_ambiguity_counts(&sent, &parserdata.get(idx).expect("No sentence"), n_adj_adv_ambig);
         overall_counts += overall_count;
         errors += error;
         idx += 1;
