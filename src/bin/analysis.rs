@@ -3,7 +3,6 @@ extern crate ambiguity_stats;
 
 use clap::{Arg, App};
 use ambiguity_stats::*;
-use ambiguity_stats::read_gng_data;
 
 pub fn main() {
     let matches = App::new("ambiguity-stats")
@@ -28,7 +27,7 @@ pub fn main() {
     let mut overall_counts = 0;
     let mut errors = 0;
 	for sent in &golddata {
-        let (overall_count, error) = get_ambiguity_counts(&sent, &parserdata.get(idx).expect("No sentence"), n_adj_adv_ambig);
+        let (overall_count, error) = get_ambiguity_counts(&sent, &parserdata.get(idx).expect("No sentence"), n_pp_ambig);
         overall_counts += overall_count;
         errors += error;
         idx += 1;

@@ -1,0 +1,10 @@
+
+/.idea
+/data/
+/statistics
+
+/target/
+**/*.rs.bk
+
+/.DS_Store
+/src/.DS_Store

@@ -13,4 +13,7 @@ mod comps;
 pub use comps::*;
 
 mod data_preps;
-pub use data_preps::read_gng_data;
+pub use data_preps::*;
+
+mod pmi_reader;
+pub use pmi_reader::*;

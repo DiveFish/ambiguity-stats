@@ -18,22 +18,22 @@ pub fn get_error_counts(gold_sent: &[Token], parser_sent: &[Token]) -> (usize, u
         }
         let gold_deprel = gold_token.head_rel().expect("No deprel");
 
-        let token = &parser_sent[i];
-        let mut headidx = token.head().expect("No head idx");
-        if headidx == 0 {  //Ignore tokens with ROOT as head
+        let parser_token = &parser_sent[i];
+        let mut parser_headidx = parser_token.head().expect("No head idx");
+        if parser_headidx == 0 {  //Ignore tokens with ROOT as head
             continue
         } else {
-            headidx -= 1;
+            parser_headidx -= 1;
         }
-        let deprel = token.head_rel().expect("No deprel");
+        let parser_deprel = parser_token.head_rel().expect("No deprel");
 
-        if gold_deprel != deprel {
+        if gold_deprel != parser_deprel {
             label_errors += 1;
         } else {
             correct_labels += 1;
         }
 
-        if gold_headidx != headidx {
+        if gold_headidx != parser_headidx {
             head_errors += 1;
         } else {
             correct_heads += 1;
@@ -65,18 +65,18 @@ pub fn n_pp_ambig(overall_pps: &mut usize, errors: &mut usize, gold_sent: &[Toke
         }
         let gold_deprel = gold_token.head_rel().expect("No deprel");
 
-        let token = &parser_sent[i];
-        let mut headidx = token.head().expect("No head idx");
-        if headidx == 0 {  //Ignore tokens with ROOT as head
+        let parser_token = &parser_sent[i];
+        let mut parser_headidx = parser_token.head().expect("No head idx");
+        if parser_headidx == 0 {  //Ignore tokens with ROOT as head
             continue
         } else {
-            headidx -= 1;
+            parser_headidx -= 1;
         }
-        let deprel = token.head_rel().expect("No deprel");
+        let parser_deprel = parser_token.head_rel().expect("No deprel");
 
-        if (gold_deprel == "PP") && gold_deprel == deprel {
+        if (gold_deprel == "PP" || gold_deprel == "OBJP") && gold_deprel == parser_deprel {
             *overall_pps += 1;
-            if gold_headidx != headidx {
+            if gold_headidx != parser_headidx {
                 *errors += 1;
                 for token in gold_sent {
                     print!("{} ", token.form());
@@ -96,14 +96,14 @@ pub fn n_pp_objps_ambig(overall_pps: &mut usize, errors: &mut usize, gold_sent: 
         let gold_token = &gold_sent[i];
         let gold_deprel = gold_token.head_rel().expect("No deprel");
 
-        let token = &nongold_sent[i];
-        let token_deprel = token.head_rel().expect("No deprel");
+        let parser_token = &nongold_sent[i];
+        let parser_deprel = parser_token.head_rel().expect("No deprel");
 
         if gold_deprel == "PP" || gold_deprel == "OBJP" {
             *overall_pps += 1;
-            if gold_deprel == "PP" && token_deprel == "OBJP" {
+            if gold_deprel == "PP" && parser_deprel == "OBJP" {
                 *errors += 1;
-            } else if gold_deprel == "OBJP" && token_deprel == "PP" {
+            } else if gold_deprel == "OBJP" && parser_deprel == "PP" {
                 *errors += 1;
                 for token in gold_sent {
                     print!("{} ", token.form());
@@ -115,7 +115,7 @@ pub fn n_pp_objps_ambig(overall_pps: &mut usize, errors: &mut usize, gold_sent: 
     }
 }
 
-//TODO: update counts in tex file
+//TODO: update counts in tex file; do we really want to count also subjects mistaken for objects?
 /// Count fronted objects as in the example "Rosen warfen die Frauen."
 /// and errors made in such cases.
 pub fn n_subj_obj_ambig(overall_subjobjs: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
@@ -132,7 +132,7 @@ pub fn n_subj_obj_ambig(overall_subjobjs: &mut usize, errors: &mut usize, gold_s
         let gold_deprel = gold_token.head_rel().expect("No deprel");
         let gold_lemma = match gold_token.lemma() { //@Daniël: There seem to be None lemmas in the data
             Some(_) => gold_token.lemma().unwrap(),
-            None => "",
+            None => ""
         };
 
         let token = &parser_sent[i];
@@ -152,14 +152,15 @@ pub fn n_subj_obj_ambig(overall_subjobjs: &mut usize, errors: &mut usize, gold_s
                 objidx = i;
             }
 
-        } else if gold_lemma == "werden%passiv" {   // Exclude passives - currently not used
+        } else if gold_lemma == "werden%passiv" {   // Exclude passives - currently NOT used
             is_passive = true;
         }
 
         if gold_deprel == "-PUNCT-" || i == gold_sent.len()-1 { // For every clause
-            if gold_subjidx > 0 && gold_objidx > 0 && gold_objidx < gold_subjidx && !is_relcl { // Fronted object
+            if gold_subjidx > 0 && gold_objidx > 0  {   // The clause contains a subj AND an obj
                 *overall_subjobjs += 1;
-                if subjidx > 0 {
+
+                if gold_objidx < gold_subjidx && !is_relcl && subjidx > 0 { // Fronted object
                     *errors += 1;
                     println!("Inversion error");
                     for token in gold_sent {
@@ -168,10 +169,7 @@ pub fn n_subj_obj_ambig(overall_subjobjs: &mut usize, errors: &mut usize, gold_s
                     println!();
                     println!("{:?\n}", gold_subjidx);
                     println!("{:?\n}", gold_objidx);
-                }
-            } else if gold_subjidx > 0 && gold_objidx > 0 {
-                *overall_subjobjs += 1;
-                if objidx > 0 {
+                } else if objidx > 0 {
                     *errors += 1;
                     println!("Subject mistaken as object");
                     for token in gold_sent {
@@ -181,6 +179,7 @@ pub fn n_subj_obj_ambig(overall_subjobjs: &mut usize, errors: &mut usize, gold_s
                     println!("{:?\n}", gold_subjidx);
                     println!("{:?\n}", gold_objidx);
                 }
+
             }
             gold_subjidx = 0;
             gold_objidx = 0;
@@ -192,7 +191,6 @@ pub fn n_subj_obj_ambig(overall_subjobjs: &mut usize, errors: &mut usize, gold_s
     }
 }
 
-//TODO: update counts in tex file
 /// Count ambiguous verb particles as in the example "Was haben Teilnehmer von Lehrgängen, ..."
 /// and errors made in such cases.
 pub fn n_phrasalv_prep_ambig(overall_phrasalv_prep: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
@@ -207,19 +205,19 @@ pub fn n_phrasalv_prep_ambig(overall_phrasalv_prep: &mut usize, errors: &mut usi
             gold_head -= 1;
         }
 
-        let token = &parser_sent[i];
-        let token_deprel = token.head_rel().expect("No deprel");
-        let mut token_head = token.head().expect("No head");
-        if token_head == 0 {  //Ignore tokens with ROOT as head
+        let parser_token = &parser_sent[i];
+        let parser_deprel = parser_token.head_rel().expect("No deprel");
+        let mut parser_head = parser_token.head().expect("No head");
+        if parser_head == 0 {  //Ignore tokens with ROOT as head
             continue
         } else {
-            token_head -= 1;
+            parser_head -= 1;
         }
 
-        if (gold_deprel == "PP" || gold_deprel == "OBJP") && gold_deprel == token_deprel {
+        if (gold_deprel == "PP" || gold_deprel == "OBJP") && gold_deprel == parser_deprel {
             if gold_sent[gold_head].pos().expect("No deprel").starts_with("V") { // Head of PP is a verb
                 *overall_phrasalv_prep += 1;
-                if parser_sent[token_head].pos().expect("No deprel").starts_with("N") {
+                if parser_sent[parser_head].pos().expect("No deprel").starts_with("N") {
                     *errors += 1;
                     println!("Should be phrasal verb, was NP-attached PP");
                     for token in gold_sent {
@@ -230,7 +228,7 @@ pub fn n_phrasalv_prep_ambig(overall_phrasalv_prep: &mut usize, errors: &mut usi
                 }
             } else if gold_sent[gold_head].pos().expect("No deprel").starts_with("N") {
                 *overall_phrasalv_prep += 1;
-                if parser_sent[token_head].pos().expect("No deprel").starts_with("V") {
+                if parser_sent[parser_head].pos().expect("No deprel").starts_with("V") {
                     *errors += 1;
                     println!("Should be NP-attached PP, was phrasal verb");
                     for token in gold_sent {
@@ -257,18 +255,18 @@ pub fn n_appo_phrase_ambig(overall_subj_objs_separations: &mut usize, errors: &m
         let gold_token = &gold_sent[i];
         let gold_deprel = gold_token.head_rel().expect("No deprel");
 
-        let token = &parser_sent[i];
-        let token_deprel = token.head_rel().expect("No deprel");
+        let parser_token = &parser_sent[i];
+        let parser_deprel = parser_token.head_rel().expect("No deprel");
 
-        if gold_deprel == "SUBJ" && token.pos().expect("No PoS tag").starts_with("N") {
+        if gold_deprel == "SUBJ" && parser_token.pos().expect("No PoS tag").starts_with("N") {
             gold_subjidx = i;
-            if token_deprel.starts_with("OBJ") {
+            if parser_deprel.starts_with("OBJ") {
                 objidx = i;
             }
         } else if gold_deprel == "OBJA" || gold_deprel == "OBJD"
-            && token.pos().expect("No PoS tag").starts_with("N") {
+            && parser_token.pos().expect("No PoS tag").starts_with("N") {
             gold_objidx = i;
-            if token_deprel == "SUBJ" {
+            if parser_deprel == "SUBJ" {
                 subjidx = i;
             }
         }
@@ -305,26 +303,34 @@ pub fn n_coord_ambig(overall_coords: &mut usize, errors: &mut usize, gold_sent: 
             gold_headidx -= 1;
         }
 
-        let token = &parser_sent[i];
-        let token_pos = token.pos().expect("No PoS tag");
-        let mut token_headidx = token.head().expect("No head");
-        if token_headidx == 0 {  //Ignore tokens with ROOT as head
+        let parser_token = &parser_sent[i];
+        let parser_pos = parser_token.pos().expect("No PoS tag");
+        let mut parser_headidx = parser_token.head().expect("No head");
+        if parser_headidx == 0 {  //Ignore tokens with ROOT as head
             continue
         } else {
-            token_headidx -= 1;
+            parser_headidx -= 1;
         }
 
-        if gold_pos == "KON" && gold_pos == token_pos //{
+        if gold_pos == "KON" && gold_pos == parser_pos //{
             && !gold_sent[gold_headidx].pos().expect("No PoS tag").starts_with("V") { // Head of coordination is a verb
             *overall_coords += 1;
-            if gold_headidx != token_headidx {
+            if gold_headidx != parser_headidx {
                 *errors += 1;
                 for token in gold_sent {
                     print!("{} ", token.form());
                 }
-                //println!("{}", parser_sent[token_headidx].pos().expect("No PoS tag"));
+                print!("\n->\n");
+                for token in gold_sent {
+                    if token == gold_token {
+                        print!("{}_{} (G: {}, P: {}) ", parser_token.form(), i, gold_headidx, parser_headidx);
+                    } else {
+                        print!("{}_{} ", token.form(), token.head().expect("No head"));
+                    }
+                }
+                //println!("{}", parser_sent[parser_headidx].pos().expect("No PoS tag"));
                 println!();
-                println!("{:?\n}", i);
+                println!("Coord idx: {:?}\n", i);
             }
         }
     }
@@ -346,20 +352,12 @@ pub fn n_adj_adv_ambig(overall_adjs: &mut usize, errors: &mut usize, gold_sent: 
         let gold_head = &gold_sent[gold_headidx];
         let gold_headpos = gold_head.pos().expect("No PoS tag");
 
-        let mut gold_npidx = 0;
-        if gold_headidx + 1 > gold_sent.len()-1 {  //Ignore tokens with ROOT as head
-            continue
-        } else {
-            gold_npidx = gold_headidx + 1;
-        }
-        let gold_headheadpos = &gold_sent[gold_npidx].pos().expect("No PoS tag");
+        let parser_token = &parser_sent[i];
+        let parser_pos = parser_token.pos().expect("No PoS tag");
 
-        let token = &parser_sent[i];
-        let token_pos = token.pos().expect("No PoS tag");
-
-        if gold_pos == "PWAV" && gold_headpos == "ADJD" && gold_headheadpos.starts_with("N") {
+        if gold_pos == "PWAV" && gold_headpos == "ADJD" && gold_headpos.starts_with("N") {
             *overall_adjs += 1;
-            if token_pos != "PWAV" {
+            if parser_pos != "PWAV" {
                 *errors += 1;
                 for token in gold_sent {
                     print!("{} ", token.form());
@@ -369,7 +367,7 @@ pub fn n_adj_adv_ambig(overall_adjs: &mut usize, errors: &mut usize, gold_sent: 
             }
         } else if gold_headpos == "ADJA" && gold_headpos.starts_with("N") && i > 0 {
             *overall_adjs += 1;
-            if token_pos != "ADJA" && parser_sent[i-1].pos().expect("No PoS tag") == "PWAV"{
+            if parser_pos != "ADJA" && parser_sent[i-1].pos().expect("No PoS tag") == "PWAV"{
                 *errors += 1;
                 for token in gold_sent {
                     print!("{} ", token.form());
@@ -394,11 +392,12 @@ pub fn n_pron_quant_ambig(overall_prons: &mut usize, errors: &mut usize, gold_se
             let next_gold_pos = next_gold_token.pos().expect("No PoS tag");
             let next_gold_deprel = next_gold_token.head_rel().expect("No deprel");
 
-            let token = &parser_sent[i];
-            let token_deprel = token.head_rel().expect("No deprel");
-            let next_token = &parser_sent[i+1];
-            let next_token_pos = next_token.pos().expect("No PoS tag");
-            let next_token_deprel = next_token.head_rel().expect("No deprel");
+            let parser_token = &parser_sent[i];
+            //TODO: Check if this variable should be used somewhere
+            let parser_deprel = parser_token.head_rel().expect("No deprel");
+            let parser_nexttoken = &parser_sent[i+1];
+            let parser_nextpos = parser_nexttoken.pos().expect("No PoS tag");
+            let parser_nextdeprel = parser_nexttoken.head_rel().expect("No deprel");
 
             if gold_deprel == "OBJD" && (next_gold_deprel == "OBJD" || next_gold_pos == "PIDAT") {
                 *overall_prons += 1;
@@ -407,8 +406,8 @@ pub fn n_pron_quant_ambig(overall_prons: &mut usize, errors: &mut usize, gold_se
                 }
                 println!();
                 println!("{:?\n}", i);
-                if (next_gold_deprel == "OBJD" && next_gold_deprel != next_token_deprel) ||
-                    (next_gold_pos == "PIDAT" && next_gold_pos != next_token_pos) {
+                if (next_gold_deprel == "OBJD" && next_gold_deprel != parser_nextdeprel) ||
+                    (next_gold_pos == "PIDAT" && next_gold_pos != parser_nextpos) {
                     *errors += 1;
 
                 }
