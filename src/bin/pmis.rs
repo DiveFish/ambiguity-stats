@@ -5,7 +5,6 @@ use clap::{Arg, App};
 use ambiguity_stats::read_sentences;
 use ambiguity_stats::get_ngram;
 use ambiguity_stats::save_to_file;
-use std::collections::HashMap;
 
 pub fn main() {
     let matches = App::new("ambiguity-stats")
@@ -16,11 +15,13 @@ pub fn main() {
             .help("Sets the data file to use")
             .required(true)
             .index(1))
+        .arg(Arg::with_name("OUTPUT_FILE")
+            .help("Sets the output file name")
+            .required(true)
+            .index(2))
         .get_matches();
 
-    let datafile = matches.value_of("INPUT_GOLD").unwrap();
+    let text = read_sentences(matches.value_of("INPUT_DATA").unwrap());
 
-    let text = read_sentences(datafile);
-
-    save_to_file("pmi-ngrams", get_ngram(&text, 2));
+    save_to_file(matches.value_of("OUTPUT_FILE").unwrap(), get_ngram(&text, 3));
 }

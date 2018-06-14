@@ -17,8 +17,9 @@ pub fn get_ngram(sentences: &Vec<Vec<Token>>, ngram_size: usize) -> HashMap<Stri
     let mut rel_map: HashMap<String, Vec<String>> = HashMap::new(); //TODO: rather use a set than a vec here?
 
     for sentence in sentences {
-        for mut idx in 0..sentence.len() {
-            while idx < (sentence.len() - 1 + ngram_size) {
+        if sentence.len() >= ngram_size {
+
+            for mut idx in 0..(sentence.len()-ngram_size) {
 
                 let mut deprels = "".to_owned();
                 let mut ngram_concat = "".to_owned();
@@ -28,12 +29,17 @@ pub fn get_ngram(sentences: &Vec<Vec<Token>>, ngram_size: usize) -> HashMap<Stri
                 // Get all words within the ngram_size range; store words AND relation between them
                 // in the map (key: relations as concatenated string; value: vec of words as string)
                 while ngram_idx < ngram_size {
-                    ngram_concat.push_str(&sentence[ngram_idx].form());
+                    ngram_concat.push_str(&sentence[ngram_idx + idx].form());
                     ngram_concat.push_str(" ");
-                    deprels.push_str(&sentence[ngram_idx].head_rel().expect("No deprel"));
+                    deprels.push_str(&sentence[ngram_idx + idx].head_rel().expect("No deprel"));
                     deprels.push_str(" ");
                     ngram_idx += 1;
                 }
+
+                ngram_concat.push_str("\n");
+
+                let d = deprels.clone();
+                let n = ngram_concat.clone();
 
                 if rel_map.contains_key(&deprels) {
                     rel_map.get_mut(&deprels).unwrap().push(ngram_concat);
@@ -42,6 +48,7 @@ pub fn get_ngram(sentences: &Vec<Vec<Token>>, ngram_size: usize) -> HashMap<Stri
                 }
 
                 idx += 1;
+
             }
         }
     }
@@ -51,14 +58,12 @@ pub fn get_ngram(sentences: &Vec<Vec<Token>>, ngram_size: usize) -> HashMap<Stri
 
 /// Save word list in files, one file per key
 pub fn save_to_file<'a>(template_name: &'a str, rel_map: HashMap<String, Vec<String>>) -> Result<()> {
-    let mut iter_idx: usize = 0;
     for (key, value) in rel_map.iter() {
-        let filename = format!("{}_{}.txt", template_name, iter_idx);   //TODO: rather use push?
+        let filename = format!("{}-{}.txt", template_name, key);   //TODO: rather use push?
         let mut file = File::create(&filename)?;
         for ngram in value.iter() {
             file.write_all(ngram.as_bytes());
         }
-        iter_idx += 1;
     }
     Ok(())
 }
