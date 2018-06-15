@@ -23,5 +23,5 @@ pub fn main() {
 
     let text = read_sentences(matches.value_of("INPUT_DATA").unwrap());
 
-    save_to_file(matches.value_of("OUTPUT_FILE").unwrap(), get_ngram(&text, 3));
+    save_to_file(matches.value_of("OUTPUT_FILE").unwrap(), get_ngram(&text, 2));
 }

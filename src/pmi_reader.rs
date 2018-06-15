@@ -32,11 +32,12 @@ pub fn get_ngram(sentences: &Vec<Vec<Token>>, ngram_size: usize) -> HashMap<Stri
                     ngram_concat.push_str(&sentence[ngram_idx + idx].form());
                     ngram_concat.push_str(" ");
                     deprels.push_str(&sentence[ngram_idx + idx].head_rel().expect("No deprel"));
-                    deprels.push_str(" ");
+                    deprels.push_str("_");
                     ngram_idx += 1;
                 }
 
                 ngram_concat.push_str("\n");
+                deprels = deprels.chars().filter(|&c| !deprels.contains("-")).collect();
 
                 let d = deprels.clone();
                 let n = ngram_concat.clone();
@@ -59,7 +60,7 @@ pub fn get_ngram(sentences: &Vec<Vec<Token>>, ngram_size: usize) -> HashMap<Stri
 /// Save word list in files, one file per key
 pub fn save_to_file<'a>(template_name: &'a str, rel_map: HashMap<String, Vec<String>>) -> Result<()> {
     for (key, value) in rel_map.iter() {
-        let filename = format!("{}-{}.txt", template_name, key);   //TODO: rather use push?
+        let filename = format!("{}{}.txt", template_name, key);   //TODO: rather use push?
         let mut file = File::create(&filename)?;
         for ngram in value.iter() {
             file.write_all(ngram.as_bytes());
