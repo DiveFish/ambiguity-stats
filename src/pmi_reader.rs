@@ -2,7 +2,7 @@ extern crate conllx;
 use conllx::Token;
 
 use std::collections::HashMap;
-use std::fs::File;
+use std::fs::{self, File, OpenOptions};
 use std::io::prelude::*;
 use std::io::Result;
 
@@ -18,9 +18,7 @@ pub fn get_ngram(sentences: &Vec<Vec<Token>>, ngram_size: usize) -> HashMap<Stri
 
     for sentence in sentences {
         if sentence.len() >= ngram_size {
-
-            for mut idx in 0..(sentence.len()-ngram_size) {
-
+            for mut idx in 0..(sentence.len() - ngram_size) {
                 let mut deprels = "".to_owned();
                 let mut ngram_concat = "".to_owned();
 
@@ -39,17 +37,12 @@ pub fn get_ngram(sentences: &Vec<Vec<Token>>, ngram_size: usize) -> HashMap<Stri
                 ngram_concat.push_str("\n");
                 deprels = deprels.chars().filter(|&c| !deprels.contains("-")).collect();
 
-                let d = deprels.clone();
                 let n = ngram_concat.clone();
-
                 if rel_map.contains_key(&deprels) {
-                    rel_map.get_mut(&deprels).unwrap().push(ngram_concat);
+                    rel_map.get_mut(&deprels).unwrap().push(n);
                 } else {
-                    rel_map.insert(deprels, vec![ngram_concat]);
+                    rel_map.insert(deprels.clone(), vec![n]);
                 }
-
-                idx += 1;
-
             }
         }
     }
@@ -58,13 +51,24 @@ pub fn get_ngram(sentences: &Vec<Vec<Token>>, ngram_size: usize) -> HashMap<Stri
 }
 
 /// Save word list in files, one file per key
-pub fn save_to_file<'a>(template_name: &'a str, rel_map: HashMap<String, Vec<String>>) -> Result<()> {
+pub fn save_to_file<'a>(file_name_template: &'a str, rel_map: HashMap<String, Vec<String>>) -> Result<()> {
+
     for (key, value) in rel_map.iter() {
-        let filename = format!("{}{}.txt", template_name, key);   //TODO: rather use push?
-        let mut file = File::create(&filename)?;
-        for ngram in value.iter() {
-            file.write_all(ngram.as_bytes());
+
+        let filename = format!("{}{}.txt", file_name_template, key);   //TODO: rather use push?
+
+        if fs::metadata(&filename).is_ok() {
+            let mut file = OpenOptions::new().append(true).open(filename).unwrap();
+            for ngram in value.iter() {
+                file.write_all(ngram.as_bytes());
+            }
+        } else {
+            let mut file = File::create(&filename)?;
+            for ngram in value.iter() {
+                file.write_all(ngram.as_bytes());
+            }
         }
+
     }
     Ok(())
 }

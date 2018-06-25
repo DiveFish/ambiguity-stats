@@ -12,8 +12,8 @@ pub use ambiguities::*;
 mod comps;
 pub use comps::*;
 
-mod data_preps;
-pub use data_preps::*;
+mod io;
+pub use io::*;
 
 mod pmi_reader;
 pub use pmi_reader::*;
