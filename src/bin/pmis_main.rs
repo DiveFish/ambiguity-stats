@@ -4,10 +4,8 @@ extern crate conllx;
 
 use clap::{Arg, App};
 use conllx::Token;
-use ambiguity_stats::read_sentences;
-use ambiguity_stats::get_all_files;
-use ambiguity_stats::get_ngram;
-use ambiguity_stats::save_to_file;
+use ambiguity_stats::{read_sentences, get_all_files, get_ngram, ngrams_to_file,
+                      pmi_to_file, read_pmi_file};
 
 pub fn main() {
     let matches = App::new("ambiguity-stats")
@@ -27,9 +25,19 @@ pub fn main() {
     let files = get_all_files(matches.value_of("INPUT_DIRECTORY").unwrap());
     let filename_template = matches.value_of("OUTPUT_FILE").unwrap();
 
+    pmi_to_file(read_pmi_file("/Users/patricia/RustProjects/results/taz/2018.06/pmi-2/OBJP_PN.txt", 2),
+                "/Users/patricia/RustProjects/results/taz/2018.06/pmi-2/OBJP_PN-sorted.txt");
+
+}
+
+fn retrieve_pmis(files: Vec<String>, filename_template: &str) {
     for file in &files {
-        save_to_file(filename_template, get_ngram(& read_sentences(file), 3));
+        ngrams_to_file(filename_template,
+                       get_ngram(& read_sentences(file), 2));
         println!("Done with file {}", file)
     }
+}
+
+fn process_pmi_files() {
 
 }

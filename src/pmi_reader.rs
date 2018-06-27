@@ -10,6 +10,7 @@ use std::io::Result;
 /// Save token pairs with same relation into same file,
 /// different relations into different files.
 
+//Todo: For a PoS-bigram, get 3 tokens! For PoS-trigram, get 4 tokens
 
 /// Read token ngrams, their deprels and save into map of shape <deprel, ngrams related by deprel>
 pub fn get_ngram(sentences: &Vec<Vec<Token>>, ngram_size: usize) -> HashMap<String, Vec<String>> {
@@ -51,7 +52,7 @@ pub fn get_ngram(sentences: &Vec<Vec<Token>>, ngram_size: usize) -> HashMap<Stri
 }
 
 /// Save word list in files, one file per key
-pub fn save_to_file<'a>(file_name_template: &'a str, rel_map: HashMap<String, Vec<String>>) -> Result<()> {
+pub fn ngrams_to_file<'a>(file_name_template: &'a str, rel_map: HashMap<String, Vec<String>>) -> Result<()> {
 
     for (key, value) in rel_map.iter() {
 

@@ -5,7 +5,6 @@ use conllx::{Token, Reader, ReadSentence};
 use std::fs::{self, File};
 use std::io::{BufReader};
 use std::path::Path;
-use self::flate2::bufread::GzDecoder;
 
 /// Read gold and non-gold data files
 pub fn read_gng_data(golddata_file: &str, nongolddata_file: &str) -> (Vec<Vec<Token>>, Vec<Vec<Token>>) {

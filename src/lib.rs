@@ -17,3 +17,6 @@ pub use io::*;
 
 mod pmi_reader;
 pub use pmi_reader::*;
+
+mod pmi_map_utils;
+pub use pmi_map_utils::*;
