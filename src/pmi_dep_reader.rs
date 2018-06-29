@@ -61,9 +61,6 @@ pub fn get_deprel_ngrams(sentences: &Vec<Vec<Token>>, max_depth: usize) -> HashM
                 deprels = deprels.chars().filter(|&c| !deprels.contains("-")).collect();
 
                 let n = ngram.clone();
-                println!("{}", &n);
-                println!("{}", &deprels);
-                println!("\n\n");
                 if rel_map.contains_key(&deprels) {
                     rel_map.get_mut(&deprels).unwrap().push(n);
                 } else {
