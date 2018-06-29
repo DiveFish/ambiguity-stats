@@ -20,3 +20,6 @@ pub use pmi_reader::*;
 
 mod pmi_map_utils;
 pub use pmi_map_utils::*;
+
+mod pmi_dep_reader;
+pub use pmi_dep_reader::*;

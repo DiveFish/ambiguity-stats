@@ -10,10 +10,8 @@ use std::io::Result;
 /// Save token pairs with same relation into same file,
 /// different relations into different files.
 
-//Todo: For a PoS-bigram, get 3 tokens! For PoS-trigram, get 4 tokens
-
 /// Read token ngrams, their deprels and save into map of shape <deprel, ngrams related by deprel>
-pub fn get_ngram(sentences: &Vec<Vec<Token>>, ngram_size: usize) -> HashMap<String, Vec<String>> {
+pub fn get_ngrams(sentences: &Vec<Vec<Token>>, ngram_size: usize) -> HashMap<String, Vec<String>> {
 
     let mut rel_map: HashMap<String, Vec<String>> = HashMap::new(); //TODO: rather use a set than a vec here?
 
@@ -28,7 +26,13 @@ pub fn get_ngram(sentences: &Vec<Vec<Token>>, ngram_size: usize) -> HashMap<Stri
                 // Get all words within the ngram_size range; store words AND relation between them
                 // in the map (key: relations as concatenated string; value: vec of words as string)
                 while ngram_idx < ngram_size {
-                    ngram_concat.push_str(&sentence[ngram_idx + idx].form());
+                    let pos = sentence[ngram_idx + idx].pos().unwrap();
+                    // Don't lowercase (proper) nouns
+                    if pos.starts_with('N') {
+                        ngram_concat.push_str(&sentence[ngram_idx + idx].form());
+                    } else {
+                        ngram_concat.push_str(&sentence[ngram_idx + idx].form().to_lowercase());
+                    }
                     ngram_concat.push_str(" ");
                     deprels.push_str(&sentence[ngram_idx + idx].head_rel().expect("No deprel"));
                     deprels.push_str("_");
@@ -61,12 +65,12 @@ pub fn ngrams_to_file<'a>(file_name_template: &'a str, rel_map: HashMap<String, 
         if fs::metadata(&filename).is_ok() {
             let mut file = OpenOptions::new().append(true).open(filename).unwrap();
             for ngram in value.iter() {
-                file.write_all(ngram.as_bytes());
+                file.write_all(ngram.as_bytes()).unwrap();
             }
         } else {
             let mut file = File::create(&filename)?;
             for ngram in value.iter() {
-                file.write_all(ngram.as_bytes());
+                file.write_all(ngram.as_bytes()).unwrap();
             }
         }
 

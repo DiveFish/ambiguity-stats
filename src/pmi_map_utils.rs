@@ -1,12 +1,13 @@
 use std::collections::HashMap;
-use std::fs::{self, File, OpenOptions};
+use std::fs::{File};
 use std::io::{BufRead, BufReader, Result, Write};
-use std::prelude::*;
 use std::path::Path;
 use std::error::Error;
 use std::cmp::Ordering::Less;
 
-pub fn read_pmi_file(input_file: &str, ngram_size: usize) -> HashMap<String, f32> {
+//Todo @Daniël: How to make a separate function pmis_to_file() with the Vec<&string, &f32> as input? <- lifetimes
+
+pub fn sort_pmi_file(input_file: &str, ngram_size: usize, output_file: &str) -> Result<()> {
 
     let path = Path::new(input_file);
     let file = match File::open(input_file) {
@@ -35,25 +36,17 @@ pub fn read_pmi_file(input_file: &str, ngram_size: usize) -> HashMap<String, f32
             }
         }
     }
-    sort_map(&mut map);
-    map
-}
-
-pub fn sort_map(map: &mut HashMap<String, f32>) -> Vec<(&String, &f32)> {
-
     let mut map_vec: Vec<(&String, &f32)> = map.iter().collect();
-    map_vec.sort_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(Less));
-    map_vec
-}
+    map_vec.sort_by(|(_, a), (_, b)| b.partial_cmp(a).unwrap_or(Less));
 
-pub fn pmi_to_file(map: HashMap<String, f32>, output_file: &str) -> Result<()> {
-
-    for entry in map.iter() {
-        let mut file = File::create(&output_file)?;
+    // Split the following into separate method
+    let mut file = File::create(&output_file)?;
+    for entry in map_vec.iter() {
         let mut line = entry.0.to_string();
         line.push_str(" ");
         line.push_str(&entry.1.to_string());
-        file.write_all(line.as_bytes());
+        line.push_str("\n");
+        file.write_all(line.as_bytes()).unwrap();
     }
     Ok(())
 }
