@@ -30,8 +30,8 @@ pub fn main() {
     collect_ngrams(files, filename_template, matches.value_of("NGRAM_SIZE").unwrap().parse::<usize>().unwrap());
 
     // Make sure pmis of ngrams have been retrieved via mi program!
-    //sort_pmi_file("/Users/patricia/RustProjects/results/taz/2018.06/pmi-bigram-ranks/PP_PN_.txt", 2,
-    //            "/Users/patricia/RustProjects/results/taz/2018.06/pmi-bigram-ranks/PP_PN_-sorted.txt").unwrap();
+    //sort_pmi_file("/Users/patricia/RustProjects/results/taz/2018.07/pmi-ranks-2rel/pmi_OBJP-PN.txt", 3,
+    //            "/Users/patricia/RustProjects/results/taz/2018.07/pmi-ranks-2rel/pmi_OBJP-PN-sorted.txt").unwrap();
 
 }
 
