@@ -15,11 +15,14 @@ pub use comps::*;
 mod io;
 pub use io::*;
 
-mod pmi_reader;
-pub use pmi_reader::*;
+mod ngram_reader;
+pub use ngram_reader::*;
 
 mod pmi_map_utils;
 pub use pmi_map_utils::*;
 
-mod pmi_dep_reader;
-pub use pmi_dep_reader::*;
+mod ngram_dep_reader;
+pub use ngram_dep_reader::*;
+
+mod sentence_tree;
+pub use sentence_tree::*;

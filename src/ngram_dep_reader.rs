@@ -1,6 +1,6 @@
 extern crate conllx;
-use conllx::Token;
 
+use conllx::Token;
 use std::collections::HashMap;
 use std::fs::{self, File, OpenOptions};
 use std::io::prelude::*;
