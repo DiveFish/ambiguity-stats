@@ -21,8 +21,14 @@ pub use ngram_reader::*;
 mod pmi_map_utils;
 pub use pmi_map_utils::*;
 
+mod reader;
+pub use reader::*;
+
 mod ngram_dep_reader;
 pub use ngram_dep_reader::*;
 
 mod sentence_tree;
 pub use sentence_tree::*;
+
+mod ngram_tree_reader;
+pub use ngram_tree_reader::*;
