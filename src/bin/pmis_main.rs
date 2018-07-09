@@ -4,7 +4,7 @@ extern crate conllx;
 
 use clap::{Arg, App};
 use ambiguity_stats::{read_sentences, get_all_files, get_ngrams, sort_pmi_file, get_deprel_ngrams,
-                      get_tree_ngrams, ngrams_to_file};
+                      get_tree_ngrams, ngrams_to_file, get_graph_ngrams};
 
 pub fn main() {
     let matches = App::new("ambiguity-stats")
@@ -39,7 +39,7 @@ pub fn main() {
 
 fn collect_ngram_trees(files: Vec<String>, ngram_size: usize) {
     for file in &files {
-        get_tree_ngrams(& read_sentences(file), ngram_size);
+        get_graph_ngrams(& read_sentences(file), ngram_size, "SUBJ", "OBJD");
     }
 }
 

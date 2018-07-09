@@ -1,46 +1,34 @@
 extern crate conllx;
 use conllx::Token;
 
-pub fn get_error_counts(gold_sent: &[Token], parser_sent: &[Token]) -> (usize, usize, usize, usize) {
+/// Get labeled attachment score (LAS) components.
+pub fn get_las(gold_sent: &[Token], parser_sent: &[Token]) -> (usize, usize, usize, usize) {
 
-    let mut correct_labels= 0;
-    let mut correct_heads= 0;
-    let mut label_errors= 0;
+    let mut attachments = 0;
+    let mut combined_errors = 0;
     let mut head_errors= 0;
+    let mut label_errors= 0;
 
     for i in 0..gold_sent.len() {
         let gold_token = &gold_sent[i];
-        let mut gold_headidx = gold_token.head().expect("No head");
-        if gold_headidx == 0 { //Ignore tokens with ROOT as head
-            continue
-        } else {
-            gold_headidx -= 1;
-        }
+        let gold_headidx = gold_token.head().expect("No head");
         let gold_deprel = gold_token.head_rel().expect("No deprel");
 
         let parser_token = &parser_sent[i];
-        let mut parser_headidx = parser_token.head().expect("No head idx");
-        if parser_headidx == 0 {  //Ignore tokens with ROOT as head
-            continue
-        } else {
-            parser_headidx -= 1;
-        }
+        let parser_headidx = parser_token.head().expect("No head idx");
         let parser_deprel = parser_token.head_rel().expect("No deprel");
 
-        if gold_deprel != parser_deprel {
-            label_errors += 1;
-        } else {
-            correct_labels += 1;
-        }
-
-        if gold_headidx != parser_headidx {
+        attachments += 1;
+        if gold_headidx != parser_headidx && gold_deprel != parser_deprel {
+            combined_errors += 1;
+        } else if gold_headidx != parser_headidx {
             head_errors += 1;
-        } else {
-            correct_heads += 1;
+        } else if gold_deprel != parser_deprel {
+            label_errors += 1;
         }
     }
 
-    (correct_labels, correct_heads, label_errors, head_errors)
+    (attachments, combined_errors, label_errors, head_errors)
 }
 
 pub fn get_ambiguity_counts(gold_sent: &[Token], parser_sent: &[Token], fun: fn(&mut usize, &mut usize, &[Token], &[Token])) -> (usize, usize) {
@@ -50,6 +38,73 @@ pub fn get_ambiguity_counts(gold_sent: &[Token], parser_sent: &[Token], fun: fn(
     let mut errors:usize = 0;
     fun(&mut overall_occurrences, &mut errors, gold_sent, parser_sent);
     (overall_occurrences, errors)
+}
+
+// Todo: Check if the results are the same as from get_all_pp_ambigs(...)
+/// Get all parser errors for particular dependency relations.
+/// Count erroneous labels only for LAS.
+pub fn get_errors_by_deprels(labels: &[&str], attachments: &mut usize, errors: &mut usize,
+                             las: bool, gold_sent: &[Token], parser_sent: &[Token]) {
+
+    for i in 0..gold_sent.len() {
+        let gold_token = &gold_sent[i];
+        let gold_deprel = gold_token.head_rel().expect("No deprel");
+
+        let mut matched = false;
+        for label in labels {
+            if &gold_deprel == label {
+                matched = true;
+                break;
+            }
+        }
+
+        if matched {
+
+            *attachments+= 1;
+
+            let gold_headidx = gold_token.head().expect("No head");
+
+            let parser_token = &parser_sent[i];
+            let parser_headidx = parser_token.head().expect("No head idx");
+            let parser_deprel = parser_token.head_rel().expect("No deprel");
+
+            if las && gold_headidx != parser_headidx && gold_deprel != parser_deprel {
+                *errors += 1;
+            } else if las && gold_deprel != parser_deprel {
+                *errors += 1;
+            } else if gold_headidx != parser_headidx {
+                *errors += 1;
+            }
+        }
+    }
+}
+
+// Todo: Return attachments, combined_errors, label_errors, head_errors
+pub fn get_all_pp_ambigs(overall_pps: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
+
+    for i in 0..gold_sent.len() {
+        let gold_token = &gold_sent[i];
+        let gold_deprel = gold_token.head_rel().expect("No deprel");
+
+        if gold_deprel=="OBJP" || gold_deprel=="PP" {
+
+            *overall_pps+= 1;
+
+            let gold_headidx = gold_token.head().expect("No head");
+
+            let parser_token = &parser_sent[i];
+            let parser_headidx = parser_token.head().expect("No head idx");
+            let parser_deprel = parser_token.head_rel().expect("No deprel");
+
+            if gold_headidx != parser_headidx && gold_deprel != parser_deprel {
+                *errors += 1;
+            } else if gold_headidx != parser_headidx {
+                *errors += 1;
+            } else if gold_deprel != parser_deprel {
+                *errors += 1;
+            }
+        }
+    }
 }
 
 /// Count PP attachments and errors made in such cases.

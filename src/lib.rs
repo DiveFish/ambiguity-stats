@@ -2,7 +2,6 @@ extern crate conllx;
 
 extern crate petgraph;
 
-#[cfg(test)]
 #[macro_use]
 extern crate lazy_static;
 
@@ -14,6 +13,9 @@ pub use comps::*;
 
 mod io;
 pub use io::*;
+
+mod graph;
+pub use graph::*;
 
 mod ngram_reader;
 pub use ngram_reader::*;
@@ -32,3 +34,6 @@ pub use sentence_tree::*;
 
 mod ngram_tree_reader;
 pub use ngram_tree_reader::*;
+
+mod ngram_graph_reader;
+pub use ngram_graph_reader::*;

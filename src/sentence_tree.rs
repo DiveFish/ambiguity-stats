@@ -20,8 +20,6 @@ pub fn from_sentence(sentence: &Vec<Token>) -> SentenceTree {
     for (idx1, idx2) in relations {
         sentence_tree.get_mut(idx1).as_mut().unwrap().add_parent(idx2);
         sentence_tree.get_mut(idx2).as_mut().unwrap().add_child(idx1);
-        //&sentence_tree.add_parent_idx(idx1, idx2);
-        //&sentence_tree.add_child_idx(idx1, idx2);
     }
 
     sentence_tree

@@ -1,10 +1,11 @@
 use conllx::{Sentence, Token};
 use petgraph::{Directed, EdgeDirection, Graph};
+use petgraph::dot::Dot;
 use petgraph::graph::NodeIndex;
 use petgraph::visit::EdgeRef;
 
-//Code in this file taken from conllx-utils repository
-//Credits: Daniël de Kok
+// Code in this file taken from conllx-utils repository
+// Credits to Daniël de Kok
 
 #[derive(Debug)]
 pub struct DependencyNode<'a> {
@@ -22,8 +23,8 @@ pub fn sentence_to_graph(sentence: &Sentence, projective: bool) -> DependencyGra
         .enumerate()
         .map(|(offset, token)| {
             g.add_node(DependencyNode {
-                token: token,
-                offset: offset,
+                token,
+                offset,
             })
         })
         .collect();
@@ -64,4 +65,9 @@ where
         .edges_directed(index, direction)
         .find(|edge_ref| predicate(edge_ref.weight()))
         .map(|edge_ref| edge_ref.target())
+}
+
+pub fn to_dot(g: &Graph<DependencyNode, Option<&str>, Directed>) {
+    let dot_output = format!("{:?}", Dot::new(&g));
+    println!("{:?}", dot_output);
 }

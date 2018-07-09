@@ -1,5 +1,4 @@
 extern crate conllx;
-extern crate flate2;
 
 use conllx::{Token, Reader, ReadSentence};
 use std::fs::{self, File};

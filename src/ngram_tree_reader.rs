@@ -16,7 +16,7 @@ pub fn get_tree_ngrams(sentences: &Vec<Vec<Token>>, max_depth: usize) -> HashMap
     for tree in sentence_trees {
         for node in tree {
             let mut depth_cnt = 0;
-            
+            // Process tree
         }
     }
 
