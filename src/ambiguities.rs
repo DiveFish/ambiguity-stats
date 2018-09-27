@@ -1,5 +1,6 @@
 extern crate conllx;
 use conllx::Token;
+use std::collections::HashMap;
 
 /// Get labeled attachment score (LAS) components.
 pub fn get_las(gold_sent: &[Token], parser_sent: &[Token]) -> (usize, usize, usize, usize) {
@@ -28,7 +29,7 @@ pub fn get_las(gold_sent: &[Token], parser_sent: &[Token]) -> (usize, usize, usi
         }
     }
 
-    (attachments, combined_errors, label_errors, head_errors)
+    (attachments, combined_errors, head_errors, label_errors)
 }
 
 pub fn get_ambiguity_counts(gold_sent: &[Token], parser_sent: &[Token], fun: fn(&mut usize, &mut usize, &[Token], &[Token])) -> (usize, usize) {
@@ -40,27 +41,27 @@ pub fn get_ambiguity_counts(gold_sent: &[Token], parser_sent: &[Token], fun: fn(
     (overall_occurrences, errors)
 }
 
-// Todo: Check if the results are the same as from get_all_pp_ambigs(...)
 /// Get all parser errors for particular dependency relations.
-/// Count erroneous labels only for LAS.
-pub fn get_errors_by_deprels(labels: &[&str], attachments: &mut usize, errors: &mut usize,
-                             las: bool, gold_sent: &[Token], parser_sent: &[Token]) {
+/// Count erroneous labels to calculate LAS.
+pub fn get_errors_by_labels(label: &str, gold_sent: &[Token], parser_sent: &[Token])
+    -> (usize, usize, usize, usize, HashMap<String, usize>) {
+
+    let mut attachments = 0;
+    let mut combined_errors = 0;
+    let mut head_errors = 0;
+    let mut label_errors = 0;
+
+    let mut wrong_labels: HashMap<String, usize> = HashMap::new();
+    let mut sent_errors = 0;
 
     for i in 0..gold_sent.len() {
         let gold_token = &gold_sent[i];
         let gold_deprel = gold_token.head_rel().expect("No deprel");
+        //let gold_pos = gold_token.pos().expect("No deprel");
 
-        let mut matched = false;
-        for label in labels {
-            if &gold_deprel == label {
-                matched = true;
-                break;
-            }
-        }
+        if &gold_deprel == &label {
 
-        if matched {
-
-            *attachments+= 1;
+            attachments+= 1;
 
             let gold_headidx = gold_token.head().expect("No head");
 
@@ -68,15 +69,22 @@ pub fn get_errors_by_deprels(labels: &[&str], attachments: &mut usize, errors: &
             let parser_headidx = parser_token.head().expect("No head idx");
             let parser_deprel = parser_token.head_rel().expect("No deprel");
 
-            if las && gold_headidx != parser_headidx && gold_deprel != parser_deprel {
-                *errors += 1;
-            } else if las && gold_deprel != parser_deprel {
-                *errors += 1;
+            if gold_headidx != parser_headidx && gold_deprel != parser_deprel {
+                combined_errors += 1;
+                sent_errors += 1;
+                *wrong_labels.entry(parser_deprel.to_string()).or_insert(0) += 1;
             } else if gold_headidx != parser_headidx {
-                *errors += 1;
+                head_errors += 1;
+                sent_errors += 1;
+            } else if gold_deprel != parser_deprel {
+                label_errors+= 1;
+                sent_errors += 1;
+                *wrong_labels.entry(parser_deprel.to_string()).or_insert(0) += 1;
             }
         }
     }
+
+    (attachments, combined_errors, head_errors, label_errors, wrong_labels)
 }
 
 // Todo: Return attachments, combined_errors, label_errors, head_errors
