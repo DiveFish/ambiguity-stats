@@ -35,7 +35,10 @@ pub fn main() {
         println!();
     }
     */
-    get_topofields(golddata.as_slice());
+    //get_topofields(golddata.as_slice());
+    for i in 0..golddata.len() {
+        get_ambiguity_counts(&golddata[i], &parserdata[i], n_pp_objps_ambig);
+    }
 }
 
 /*

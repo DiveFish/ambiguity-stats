@@ -3,10 +3,8 @@ use std::fs::{self, File, OpenOptions};
 use std::io::prelude::*;
 use std::io::Result;
 
-/// Generic struct for different kinds of ngram readers
-
-
-/// Save word list in files, one file per key
+/// Generic function for different kinds of ngram readers
+/// Save word list in files, one file per key.
 pub fn ngrams_to_file<'a>(file_name_template: &'a str, rel_map: HashMap<String, Vec<String>>) -> Result<()> {
 
     for (key, value) in rel_map.iter() {

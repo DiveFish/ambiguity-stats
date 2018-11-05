@@ -8,6 +8,8 @@ use petgraph::EdgeDirection;
 use petgraph::graph::NodeIndex;
 use petgraph::visit::EdgeRef;
 
+//TODO: Unfinished code
+
 static PP_RELATION: &'static str = "PP";
 static OBJP_RELATION: &'static str = "OBJP";
 /*

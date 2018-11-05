@@ -4,8 +4,11 @@ extern crate conllx;
 
 use clap::{Arg, App};
 use ambiguity_stats::{read_sentences, get_all_files, get_ngrams, sort_pmi_file, get_deprel_ngrams,
-                      get_tree_ngrams, ngrams_to_file, get_graph_ngrams};
+                      get_tree_ngrams, ngrams_to_file, get_graph_ngrams, get_deprel_bigrams};
 
+/// The compute-mi program takes non-deduplicated lists of ngrams and calculates the PMIs for
+/// all ngrams in the list. The ngram lists are generated in 'ambiguity-stats' before they
+/// are passed to compute-mi.
 pub fn main() {
     let matches = App::new("ambiguity-stats")
         .version("1.0")
@@ -25,29 +28,31 @@ pub fn main() {
             .index(3))
         .get_matches();
 
-    let files = get_all_files(matches.value_of("INPUT_DIRECTORY").unwrap());
-    let filename_template = matches.value_of("OUTPUT_DIRECTORY").unwrap();
-    //collect_ngrams(files, filename_template, matches.value_of("NGRAM_SIZE").unwrap().parse::<usize>().unwrap());
+    let input_files = get_all_files(matches.value_of("INPUT_DIRECTORY").unwrap());
+    let output_filet_template = matches.value_of("OUTPUT_DIRECTORY").unwrap();
 
-    collect_ngram_trees(files, matches.value_of("NGRAM_SIZE").unwrap().parse::<usize>().unwrap());
+    collect_ngrams(input_files, output_file_template, matches.value_of("NGRAM_SIZE").unwrap().parse::<usize>().unwrap());
 
-    // Make sure pmis of ngrams have been retrieved via mi program!
+    //collect_ngram_trees(files, matches.value_of("NGRAM_SIZE").unwrap().parse::<usize>().unwrap());
+
+    // Sort ngrams by PMI
+    // Make sure pmis of ngrams have been retrieved via mi program before sorting the ngram-pmi lists!
     //sort_pmi_file("/Users/patricia/RustProjects/results/taz/2018.07/pmi-ranks-2rel/pmi_OBJP-PN.txt", 3,
     //            "/Users/patricia/RustProjects/results/taz/2018.07/pmi-ranks-2rel/pmi_OBJP-PN-sorted.txt").unwrap();
 
 }
 
+#[allow(dead_code)]
 fn collect_ngram_trees(files: Vec<String>, ngram_size: usize) {
     for file in &files {
-        get_graph_ngrams(& read_sentences(file), ngram_size, "SUBJ", "OBJD");
+        get_graph_ngrams(& read_sentences(file), ngram_size, "SUBJ", "OBJA");
     }
 }
 
-#[allow(dead_code)]
 fn collect_ngrams(files: Vec<String>, filename_template: &str, ngram_size: usize) {
     for file in &files {
         ngrams_to_file(filename_template,
-                       get_deprel_ngrams(& read_sentences(file), ngram_size)).unwrap();
+                       get_deprel_bigrams(& read_sentences(file))).unwrap();
         println!("Done with file {}", file)
     }
 }
