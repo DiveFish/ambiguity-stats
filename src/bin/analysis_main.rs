@@ -34,10 +34,19 @@ pub fn main() {
         }
         println!();
     }
-    */
     //get_topofields(golddata.as_slice());
     for i in 0..golddata.len() {
-        get_ambiguity_counts(&golddata[i], &parserdata[i], n_pp_objps_ambig);
+        get_ambiguity_counts(&golddata[i], &parserdata[i], pp_preps);
+    }
+    */
+
+
+    let mut preps: HashMap<String, Vec<usize>> = HashMap::new();
+    for i in 0..golddata.len() {
+        pp_preps(&mut preps, &golddata[i], &parserdata[i]);
+    }
+    for (key, value) in preps.iter() {
+        println!("{}: #{:?}, {:?} errors; {} verb heads, {} noun heads, {} other", key, value[0], value[1], value[2], value[3], value[4]);
     }
 }
 

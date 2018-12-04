@@ -87,6 +87,50 @@ pub fn get_errors_by_labels(label: &str, gold_sent: &[Token], parser_sent: &[Tok
     (attachments, combined_errors, head_errors, label_errors, wrong_labels)
 }
 
+/// Get all prepositions and the number of errors made with them
+pub fn pp_preps(preps: &mut HashMap<String, Vec<usize>>, gold_sent: &[Token], parser_sent: &[Token]) {
+    for i in 0..gold_sent.len() {
+        let gold_token = &gold_sent[i];
+        let mut gold_headidx = gold_token.head().expect("No head");    //To avoid panic, use `match`
+        if gold_headidx == 0 { //Ignore tokens with ROOT as head
+            continue
+        } else {
+            gold_headidx -= 1;
+        }
+        let gold_deprel = gold_token.head_rel().expect("No deprel");
+
+        let parser_token = &parser_sent[i];
+        let mut parser_headidx = parser_token.head().expect("No head idx");
+        if parser_headidx == 0 {  //Ignore tokens with ROOT as head
+            continue
+        } else {
+            parser_headidx -= 1;
+        }
+        let parser_deprel = parser_token.head_rel().expect("No deprel");
+
+        if (gold_deprel == "PP" || gold_deprel == "OBJP") {
+
+            let value = preps.entry(gold_token.form().to_lowercase().to_string()).or_insert(vec![0; 5]);
+            value[0] += 1;
+
+            if (gold_deprel != parser_deprel) || (gold_headidx != parser_headidx) {
+                value[1] += 1;
+            }
+
+            let head_pos = &gold_sent[gold_headidx].pos().expect("No PoS tag");
+
+            if head_pos.starts_with("V") {
+                value[2] += 1;
+            } else if head_pos.starts_with("N") {
+                    value[3] += 1;
+            } else {
+                value[4] += 1;
+            }
+
+        }
+    }
+}
+
 // Todo: Return attachments, combined_errors, label_errors, head_errors
 pub fn get_all_pp_ambigs(overall_pps: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
 

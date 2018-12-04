@@ -5,7 +5,7 @@ authors = ["DiveFish"]
 
 [dependencies]
 conllx = "0.10.2"
-petgraph = "0.4.12"
+petgraph = "0.4.13"
 clap = "2.31.2"
 flate2 = "0.2"
 lazy_static = "1.0.1"
