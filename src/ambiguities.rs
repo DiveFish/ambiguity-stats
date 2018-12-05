@@ -117,7 +117,7 @@ pub fn pp_preps(preps: &mut HashMap<String, Vec<usize>>, gold_sent: &[Token], pa
                 value[1] += 1;
             }
 
-            let head_pos = &gold_sent[gold_headidx].pos().expect("No PoS tag");
+            let head_pos = &parser_sent[parser_headidx].pos().expect("No PoS tag");
 
             if head_pos.starts_with("V") {
                 value[2] += 1;
@@ -224,7 +224,10 @@ pub fn n_pp_objps_ambig(overall_pps: &mut usize, errors: &mut usize, gold_sent: 
 
 //TODO: update counts in tex file; do we really want to count also subjects mistaken for objects?
 /// Count fronted objects as in the example "Rosen warfen die Frauen."
-/// and errors made in such cases.
+/// and errors made in such cases. Also include general confusions between
+/// subject and object.
+/// For counting only object fronting errors, exclude ``else if objidx > 0 || subjidx > 0 {``
+/// and add ``gold_objidx < gold_subjidx`` to if above ``overall_subjobjs += 1``
 pub fn n_subj_obj_ambig(overall_subjobjs: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
 
     let mut gold_subjidx = 0;
@@ -237,7 +240,7 @@ pub fn n_subj_obj_ambig(overall_subjobjs: &mut usize, errors: &mut usize, gold_s
     for i in 0..gold_sent.len() {
         let gold_token = &gold_sent[i];
         let gold_deprel = gold_token.head_rel().expect("No deprel");
-        let gold_lemma = match gold_token.lemma() { //@Daniël: There seem to be None lemmas in the data
+        let gold_lemma = match gold_token.lemma() {
             Some(_) => gold_token.lemma().unwrap(),
             None => ""
         };
@@ -251,12 +254,12 @@ pub fn n_subj_obj_ambig(overall_subjobjs: &mut usize, errors: &mut usize, gold_s
                 is_relcl = true;
             }
             if token_deprel == "SUBJ" {
-                subjidx = i;    // Fronted OBJ mistaken for SUBJ
+                subjidx = i;    // OBJA mistaken for SUBJ
             }
         } else if gold_deprel == "SUBJ" {
             gold_subjidx = i;
             if token_deprel.starts_with("OBJ") {
-                objidx = i;
+                objidx = i;     // SUBJ mistaken for OBJ
             }
 
         } else if gold_lemma == "werden%passiv" {   // Exclude passives - currently NOT used
@@ -264,27 +267,33 @@ pub fn n_subj_obj_ambig(overall_subjobjs: &mut usize, errors: &mut usize, gold_s
         }
 
         if gold_deprel == "-PUNCT-" || i == gold_sent.len()-1 { // For every clause
-            if gold_subjidx > 0 && gold_objidx > 0  {   // The clause contains a subj AND an obj
+            if gold_subjidx > 0 && gold_objidx > 0 {   // The clause contains a subj AND an obj
                 *overall_subjobjs += 1;
 
-                if gold_objidx < gold_subjidx && !is_relcl && subjidx > 0 { // Fronted object
+                if gold_objidx < gold_subjidx && (subjidx > 0 || objidx > 0) { // Fronted object ?? Exclude relative clauses with !is_rel?
                     *errors += 1;
-                    println!("Inversion error");
-                    for token in gold_sent {
-                        print!("{} ", token.form());
+
+                    if gold_sent.len() < 30 {
+                        println!("Object fronting error");
+                        for token in gold_sent {
+                            print!("{} ", token.form());
+                        }
+                        println!();
+                        println!("Subj {:?\n}", gold_subjidx);
+                        println!("Obj {:?\n}", gold_objidx);
                     }
-                    println!();
-                    println!("{:?\n}", gold_subjidx);
-                    println!("{:?\n}", gold_objidx);
-                } else if objidx > 0 {
+                } else if objidx > 0 || subjidx > 0 {   // OBJ mistaken for SUBJ or other way around
                     *errors += 1;
-                    println!("Subject mistaken as object");
-                    for token in gold_sent {
-                        print!("{} ", token.form());
+
+                    if gold_sent.len() < 30 {
+                        println!("Subject-object confusion");
+                        for token in gold_sent {
+                            print!("{} ", token.form());
+                        }
+                        println!();
+                        println!("Subj {:?\n}", gold_subjidx);
+                        println!("Obj {:?\n}", gold_objidx);
                     }
-                    println!();
-                    println!("{:?\n}", gold_subjidx);
-                    println!("{:?\n}", gold_objidx);
                 }
 
             }

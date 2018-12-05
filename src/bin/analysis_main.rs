@@ -35,12 +35,24 @@ pub fn main() {
         println!();
     }
     //get_topofields(golddata.as_slice());
-    for i in 0..golddata.len() {
-        get_ambiguity_counts(&golddata[i], &parserdata[i], pp_preps);
-    }
     */
 
+    let mut occurrences_total = 0;
+    let mut errors_total = 0;
 
+    for i in 0..golddata.len() {
+
+        //let (overall_count, error) = get_ambiguity_counts(&sent, &parserdata.get(idx).expect("No sentence"), get_all_pp_ambigs);
+        let (overall_occurrences, errors) = get_ambiguity_counts(&golddata[i], &parserdata[i], n_subj_obj_ambig);
+
+        occurrences_total += overall_occurrences;
+        errors_total += errors;
+    }
+    println!("Ambiguity count: {},\terrors {}", occurrences_total, errors_total);
+
+
+    //Get number of errors, number of verbal and nominal head per preposition
+    /*
     let mut preps: HashMap<String, Vec<usize>> = HashMap::new();
     for i in 0..golddata.len() {
         pp_preps(&mut preps, &golddata[i], &parserdata[i]);
@@ -48,6 +60,7 @@ pub fn main() {
     for (key, value) in preps.iter() {
         println!("{}: #{:?}, {:?} errors; {} verb heads, {} noun heads, {} other", key, value[0], value[1], value[2], value[3], value[4]);
     }
+    */
 }
 
 /*
