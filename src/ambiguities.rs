@@ -222,18 +222,100 @@ pub fn n_pp_objps_ambig(overall_pps: &mut usize, errors: &mut usize, gold_sent: 
     }
 }
 
-//TODO: update counts in tex file; do we really want to count also subjects mistaken for objects?
 /// Count fronted objects as in the example "Rosen warfen die Frauen."
 /// and errors made in such cases. Also include general confusions between
 /// subject and object.
-/// For counting only object fronting errors, exclude ``else if objidx > 0 || subjidx > 0 {``
-/// and add ``gold_objidx < gold_subjidx`` to if above ``overall_subjobjs += 1``
+/// For counting only object fronting errors, include ``&& gold_subjidx > gold_objidx``
+/// in the line ``if gold_subjidx > 0 && gold_objidx > 0 {  // Clause has a subject and an object``
 pub fn n_subj_obj_ambig(overall_subjobjs: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
 
+    let mut head_verb_args = HashMap::new();
+
+    for i in 0..gold_sent.len() {
+        let gold_token = &gold_sent[i];
+        let gold_deprel = gold_token.head_rel().expect("No deprel");
+        let gold_head = gold_token.head().expect("No head");
+
+        let token = &parser_sent[i];
+        let token_deprel = token.head_rel().expect("No deprel");
+        let mut token_head = token.head().expect("No head");
+
+        if gold_deprel == "SUBJ" || gold_deprel.starts_with("OBJ") {
+
+            let mut verb_idx = 0;
+            if gold_sent[gold_head-1].head_rel().expect("No deprel").eq("AUX") {   // Reattach auxiliary verb to content verb
+                verb_idx = gold_sent[gold_head-1].head().expect("No head");
+            } else {
+                verb_idx = gold_head;
+            }
+
+            if gold_deprel == "SUBJ" {
+                let entry = head_verb_args.entry(verb_idx).or_insert(vec![0; 4]);
+                entry[0] = i;
+
+                if token_deprel.starts_with("OBJ") {
+                    entry[1] = i;     // SUBJ mistaken for OBJ: Save
+                }
+            } else if gold_deprel.starts_with("OBJ") {
+                let entry = head_verb_args.entry(verb_idx).or_insert(vec![0; 4]);
+                entry[2] = i;
+
+                if token_deprel == "SUBJ" {
+                    entry[3] = i;    // OBJA mistaken for SUBJ
+                }
+            }
+        }
+    }
+
+    for (key, val) in head_verb_args.iter() {
+
+        let gold_subjidx = val[0];
+        let parser_objidx = val[1];  // OBJ but should have been SUBJ
+        let gold_objidx = val[2];
+        let parser_subjidx = val[3];   // SUBJ but should have been OBJ
+
+        if gold_subjidx > 0 && gold_objidx > 0 {  // Clause has a subject and an object
+            *overall_subjobjs += 1;
+
+            if parser_objidx > 0 || parser_subjidx > 0 {
+                *errors += 1;
+
+                if gold_sent.len() < 30 {
+
+                    if gold_subjidx > gold_objidx {
+                        println!("\nSubject-object INVERSION:");
+                    } else {
+                        println!("\nSubject-object CONFUSION:");
+                    }
+                    for token in gold_sent {
+                        print!("{} ", token.form());
+                    }
+                    println!();
+                    println!(">  Gold subj/obj {:?} {:?}", gold_subjidx, gold_objidx);
+                    if parser_objidx > 0 && parser_subjidx > 0 {
+                        println!(">  Parser subj/obj {:?} {:?}", parser_subjidx, parser_objidx);
+                    } else if parser_objidx > 0 {
+                        println!(">  Parser obj {:?}", parser_objidx);
+                    } else if parser_subjidx > 0 {
+                        println!(">  Parser subj {:?}", parser_subjidx);
+                    }
+
+                }
+            }
+        }
+    }
+}
+
+pub fn n_subj_obj_ambig_old(overall_subjobjs: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
+
     let mut gold_subjidx = 0;
+    let mut gold_subj_headidx = 0;
     let mut gold_objidx = 0;
+    let mut gold_obj_headidx = 0;
     let mut subjidx = 0;
     let mut objidx = 0;
+    let mut is_new_clause = false;
+
     let mut is_passive = false;  // Exclude passive, relative clauses or reflexives?
     let mut is_relcl = false;
 
@@ -244,33 +326,53 @@ pub fn n_subj_obj_ambig(overall_subjobjs: &mut usize, errors: &mut usize, gold_s
             Some(_) => gold_token.lemma().unwrap(),
             None => ""
         };
+        let mut gold_head = gold_token.head().expect("No head");
 
         let token = &parser_sent[i];
         let token_deprel = token.head_rel().expect("No deprel");
+        let mut token_head = token.head().expect("No head");
 
         if gold_deprel.starts_with("OBJ") {
             gold_objidx = i;
-            if gold_token.pos().expect("No PoS tag") == "PRELS" {   // Exclude object fronting in relative clauses
-                is_relcl = true;
+
+            if gold_sent[gold_head-1].head_rel().expect("No deprel").eq("AUX") {   // Reattach auxiliary verbs to content verb
+                gold_subj_headidx = gold_sent[gold_head-1].head().expect("No head");
+            } else {
+                gold_subj_headidx = gold_head;
             }
+
             if token_deprel == "SUBJ" {
                 subjidx = i;    // OBJA mistaken for SUBJ
             }
+
+            if gold_token.pos().expect("No PoS tag") == "PRELS" {   // Exclude object fronting in relative clauses
+                is_relcl = true;
+            }
         } else if gold_deprel == "SUBJ" {
             gold_subjidx = i;
+
+            if gold_sent[gold_head-1].head_rel().expect("No deprel").eq("AUX") {   // Reattach auxiliary verbs to content verb
+                gold_obj_headidx = gold_sent[gold_head-1].head().expect("No head");
+            } else {
+                gold_obj_headidx = gold_head;
+            }
+
             if token_deprel.starts_with("OBJ") {
                 objidx = i;     // SUBJ mistaken for OBJ
             }
 
+            if gold_token.pos().expect("No PoS tag") == "PRELS" {   // Exclude object fronting in relative clauses
+                is_relcl = true;
+            }
         } else if gold_lemma == "werden%passiv" {   // Exclude passives - currently NOT used
             is_passive = true;
         }
 
-        if gold_deprel == "-PUNCT-" || i == gold_sent.len()-1 { // For every clause
+        if gold_subj_headidx == gold_obj_headidx || i == gold_sent.len()-1 { // For every sentence and every subject and object sharing the same head
             if gold_subjidx > 0 && gold_objidx > 0 {   // The clause contains a subj AND an obj
                 *overall_subjobjs += 1;
 
-                if gold_objidx < gold_subjidx && (subjidx > 0 || objidx > 0) { // Fronted object ?? Exclude relative clauses with !is_rel?
+                if gold_objidx < gold_subjidx && (subjidx > 0 || objidx > 0) { // Fronted object ?? Exclude relative clauses with `!is_rel?`
                     *errors += 1;
 
                     if gold_sent.len() < 30 {
@@ -279,8 +381,14 @@ pub fn n_subj_obj_ambig(overall_subjobjs: &mut usize, errors: &mut usize, gold_s
                             print!("{} ", token.form());
                         }
                         println!();
-                        println!("Subj {:?\n}", gold_subjidx);
-                        println!("Obj {:?\n}", gold_objidx);
+                        println!(">  Gold subj/obj {:?} {:?}", gold_subjidx, gold_objidx);
+                        if subjidx > 0 && objidx > 0 {
+                            println!(">  Parser subj/obj {:?} {:?}", subjidx, objidx);
+                        } else if subjidx > 0 {
+                            println!(">  Parser subj {:?}", subjidx);
+                        } else if objidx > 0 {
+                            println!(">  Parser obj {:?}", objidx);
+                        }
                     }
                 } else if objidx > 0 || subjidx > 0 {   // OBJ mistaken for SUBJ or other way around
                     *errors += 1;
@@ -291,14 +399,22 @@ pub fn n_subj_obj_ambig(overall_subjobjs: &mut usize, errors: &mut usize, gold_s
                             print!("{} ", token.form());
                         }
                         println!();
-                        println!("Subj {:?\n}", gold_subjidx);
-                        println!("Obj {:?\n}", gold_objidx);
+                        println!(">  Gold subj/obj {:?} {:?}", gold_subjidx, gold_objidx);
+                        if subjidx > 0 && objidx > 0 {
+                            println!(">  Parser subj/obj {:?} {:?}", subjidx, objidx);
+                        } else if subjidx > 0 {
+                            println!(">  Parser subj {:?}", subjidx);
+                        } else if objidx > 0 {
+                            println!(">  Parser obj {:?}", objidx);
+                        }
                     }
                 }
 
             }
             gold_subjidx = 0;
+            gold_subj_headidx = 0;
             gold_objidx = 0;
+            gold_obj_headidx = 0;
             subjidx = 0;
             objidx = 0;
             is_passive = false;
@@ -309,11 +425,13 @@ pub fn n_subj_obj_ambig(overall_subjobjs: &mut usize, errors: &mut usize, gold_s
 
 /// Count ambiguous verb particles as in the example "Was haben Teilnehmer von Lehrgängen, ..."
 /// and errors made in such cases.
+// TODO: Too many cases counted as potential phrasal verb error sites (?)
 pub fn n_phrasalv_prep_ambig(overall_phrasalv_prep: &mut usize, errors: &mut usize, gold_sent: &[Token], parser_sent: &[Token]) {
 
     for i in 0..gold_sent.len() {
         let gold_token = &gold_sent[i];
         let gold_deprel = gold_token.head_rel().expect("No deprel");
+        //let gold_pos = gold_token.pos().expect("No PoS");
         let mut gold_head = gold_token.head().expect("No head");
         if gold_head == 0 {  //Ignore tokens with ROOT as head
             continue
@@ -323,6 +441,7 @@ pub fn n_phrasalv_prep_ambig(overall_phrasalv_prep: &mut usize, errors: &mut usi
 
         let parser_token = &parser_sent[i];
         let parser_deprel = parser_token.head_rel().expect("No deprel");
+        //let parser_pos = parser_token.pos().expect("No PoS");
         let mut parser_head = parser_token.head().expect("No head");
         if parser_head == 0 {  //Ignore tokens with ROOT as head
             continue
