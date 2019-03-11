@@ -1,7 +1,7 @@
 extern crate conllx;
 
-extern crate petgraph;
 extern crate flate2;
+extern crate petgraph;
 
 #[macro_use]
 extern crate lazy_static;
@@ -41,3 +41,6 @@ pub use ngram_graph_reader::*;
 
 mod pps;
 pub use pps::get_topofields;
+
+mod scores;
+pub use scores::*;

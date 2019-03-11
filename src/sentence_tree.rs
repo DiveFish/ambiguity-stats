@@ -1,6 +1,6 @@
 extern crate conllx;
 
-use conllx::{Token, Features};
+use conllx::{Features, Token};
 
 pub type SentenceTree = Vec<Node>;
 
@@ -18,8 +18,16 @@ pub fn from_sentence(sentence: &Vec<Token>) -> SentenceTree {
     }
 
     for (idx1, idx2) in relations {
-        sentence_tree.get_mut(idx1).as_mut().unwrap().add_parent(idx2);
-        sentence_tree.get_mut(idx2).as_mut().unwrap().add_child(idx1);
+        sentence_tree
+            .get_mut(idx1)
+            .as_mut()
+            .unwrap()
+            .add_parent(idx2);
+        sentence_tree
+            .get_mut(idx2)
+            .as_mut()
+            .unwrap()
+            .add_child(idx1);
     }
 
     sentence_tree
@@ -34,11 +42,10 @@ pub struct Node {
     head: Option<usize>,
     index: usize,
     parents: Vec<usize>,
-    children: Vec<usize>
+    children: Vec<usize>,
 }
 
 impl Node {
-
     pub fn new(token: &Token, index: usize) -> Node {
         Node {
             form: token.form().to_string(),
@@ -65,23 +72,37 @@ impl Node {
         }
     }
 
-    pub fn get_form(&self) -> &str { self.form.as_ref() }
+    pub fn get_form(&self) -> &str {
+        self.form.as_ref()
+    }
 
-    pub fn get_pos(&self) -> &str { self.pos.as_ref() }
+    pub fn get_pos(&self) -> &str {
+        self.pos.as_ref()
+    }
 
-    pub fn get_deprel(&self) -> Option<&str> { self.deprel.as_ref().map(String::as_ref) }
+    pub fn get_deprel(&self) -> Option<&str> {
+        self.deprel.as_ref().map(String::as_ref)
+    }
 
     pub fn get_features(&self) -> Option<&Features> {
         self.features.as_ref()
     }
 
-    pub fn get_index(&self) -> usize { self.index }
+    pub fn get_index(&self) -> usize {
+        self.index
+    }
 
-    pub fn get_head(&self) -> Option<usize> { self.head }
+    pub fn get_head(&self) -> Option<usize> {
+        self.head
+    }
 
-    pub fn get_parents(&self) -> &Vec<usize> { self.parents.as_ref() }
+    pub fn get_parents(&self) -> &Vec<usize> {
+        self.parents.as_ref()
+    }
 
-    pub fn get_children(&self) -> &Vec<usize> { self.children.as_ref() }
+    pub fn get_children(&self) -> &Vec<usize> {
+        self.children.as_ref()
+    }
 
     pub fn add_parent(&mut self, parent: usize) {
         self.parents.push(parent);

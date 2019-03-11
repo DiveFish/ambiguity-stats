@@ -1,12 +1,13 @@
 extern crate conllx;
 
 use conllx::Token;
+use sentence_tree::{from_sentence, SentenceTree};
 use std::collections::HashMap;
-use sentence_tree::{SentenceTree, from_sentence};
 
-
-pub fn get_tree_ngrams(sentences: &Vec<Vec<Token>>, max_depth: usize) -> HashMap<String, Vec<String>> {
-
+pub fn get_tree_ngrams(
+    sentences: &Vec<Vec<Token>>,
+    max_depth: usize,
+) -> HashMap<String, Vec<String>> {
     let mut sentence_trees: Vec<SentenceTree> = Vec::new();
     for sentence in sentences {
         sentence_trees.push(from_sentence(sentence));

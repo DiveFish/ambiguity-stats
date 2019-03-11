@@ -1,26 +1,24 @@
+use std::cmp::Ordering::Less;
 use std::collections::HashMap;
-use std::fs::{File};
+use std::error::Error;
+use std::fs::File;
 use std::io::{BufRead, BufReader, Result, Write};
 use std::path::Path;
-use std::error::Error;
-use std::cmp::Ordering::Less;
 
 //Todo @Daniël: How to make a separate function pmis_to_file() with the Vec<&string, &f32> as input? <- lifetimes
 
 pub fn sort_pmi_file(input_file: &str, ngram_size: usize, output_file: &str) -> Result<()> {
-
     let path = Path::new(input_file);
     let file = match File::open(input_file) {
-        Err(why) => panic!("Couldn't open {}: {}", path.display(),
-                           why.description()),
+        Err(why) => panic!("Couldn't open {}: {}", path.display(), why.description()),
         Ok(file) => file,
     };
-    let mut map:HashMap<String, f32> = HashMap::new();
+    let mut map: HashMap<String, f32> = HashMap::new();
     for reader in BufReader::new(file).lines() {
         let mut line = reader.unwrap();
         let mut split_line = line.split_whitespace();
         let mut ngram = "".to_owned();
-        for i in 0..ngram_size+1 as usize {
+        for i in 0..ngram_size + 1 as usize {
             if i < ngram_size {
                 if i == 0 {
                     ngram.push_str(&split_line.next().unwrap());

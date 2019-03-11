@@ -1,8 +1,8 @@
 use conllx::{Sentence, Token};
-use petgraph::{Directed, EdgeDirection, Graph};
 use petgraph::dot::Dot;
 use petgraph::graph::NodeIndex;
 use petgraph::visit::EdgeRef;
+use petgraph::{Directed, EdgeDirection, Graph};
 
 // Code in this file taken from conllx-utils repository
 // Credits to Daniël de Kok
@@ -21,12 +21,7 @@ pub fn sentence_to_graph(sentence: &Sentence, projective: bool) -> DependencyGra
     let nodes: Vec<_> = sentence
         .iter()
         .enumerate()
-        .map(|(offset, token)| {
-            g.add_node(DependencyNode {
-                token,
-                offset,
-            })
-        })
+        .map(|(offset, token)| g.add_node(DependencyNode { token, offset }))
         .collect();
 
     for (idx, token) in sentence.iter().enumerate() {
@@ -55,7 +50,7 @@ pub fn sentence_to_graph(sentence: &Sentence, projective: bool) -> DependencyGra
 pub fn first_matching_edge<F>(
     graph: &DependencyGraph,
     index: NodeIndex,
-    direction: EdgeDirection,   //Outgoing, Incoming
+    direction: EdgeDirection, //Outgoing, Incoming
     predicate: F,
 ) -> Option<NodeIndex>
 where

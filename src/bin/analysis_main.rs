@@ -1,41 +1,47 @@
-extern crate clap;
 extern crate ambiguity_stats;
+extern crate clap;
 extern crate conllx;
 
-use clap::{Arg, App};
 use ambiguity_stats::*;
-use std::collections::HashMap;
+use clap::{App, Arg};
 use conllx::Token;
+use std::collections::HashMap;
 
 pub fn main() {
     let matches = App::new("ambiguity-stats")
         .version("1.0")
         .author("DiveFish")
         .about("Get statistics of ambguities occurring in parser data.")
-        .arg(Arg::with_name("INPUT_GOLD")
-            .help("Sets the gold data file to use")
-            .required(true)
-            .index(1))
-        .arg(Arg::with_name("INPUT_NONGOLD")
-            .help("Sets the parser data file to use")
-            .required(true)
-            .index(2))
-        .get_matches();
+        .arg(
+            Arg::with_name("INPUT_GOLD")
+                .help("Sets the gold data file to use")
+                .required(true)
+                .index(1),
+        ).arg(
+            Arg::with_name("INPUT_NONGOLD")
+                .help("Sets the parser data file to use")
+                .required(true)
+                .index(2),
+        ).get_matches();
 
     let golddatafile = matches.value_of("INPUT_GOLD").unwrap();
     let parserdatafile = matches.value_of("INPUT_NONGOLD").unwrap();
-	let (golddata, parserdata) = read_gng_data(golddatafile, parserdatafile);
+    let (golddata, parserdata) = read_gng_data(golddatafile, parserdatafile);
 
-    /*
+    let mut n_sent = 0;
+    let mut n_token = 0;
     for gold_sent in &golddata {
+        n_sent += 1;
         for i in 0..gold_sent.len() {
-            let gold_token = &gold_sent[i];
-            print!("{} ", gold_token.form());
+            n_token += 1;
+            //let gold_token = &gold_sent[i];
+            //print!("{} ", gold_token.form());
         }
-        println!();
+        //println!();
     }
+    println!("{:?} {:?}", n_sent, n_token);
+    /*
     //get_topofields(golddata.as_slice());
-    */
 
     let mut occurrences_total = 0;
     let mut errors_total = 0;
@@ -43,7 +49,7 @@ pub fn main() {
     for i in 0..golddata.len() {
 
         //let (overall_count, error) = get_ambiguity_counts(&sent, &parserdata.get(idx).expect("No sentence"), get_all_pp_ambigs);
-        let (overall_occurrences, errors) = get_ambiguity_counts(&golddata[i], &parserdata[i], n_subj_obj_ambig);
+        let (overall_occurrences, errors) = get_ambiguity_counts(&golddata[i], &parserdata[i], n_phrasalv_prep_ambig);
 
         occurrences_total += overall_occurrences;
         errors_total += errors;
@@ -52,7 +58,6 @@ pub fn main() {
 
 
     //Get number of errors, number of verbal and nominal head per preposition
-    /*
     let mut preps: HashMap<String, Vec<usize>> = HashMap::new();
     for i in 0..golddata.len() {
         pp_preps(&mut preps, &golddata[i], &parserdata[i]);
@@ -60,6 +65,7 @@ pub fn main() {
     for (key, value) in preps.iter() {
         println!("{}: #{:?}, {:?} errors; {} verb heads, {} noun heads, {} other", key, value[0], value[1], value[2], value[3], value[4]);
     }
+
     */
 }
 

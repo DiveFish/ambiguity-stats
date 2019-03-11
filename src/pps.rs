@@ -1,6 +1,6 @@
 extern crate conllx;
 
-use conllx::{Token, Features};
+use conllx::{Features, Token};
 use std::collections::BTreeMap;
 
 pub fn get_topofields(text: &[Vec<Token>]) {
@@ -27,21 +27,30 @@ pub fn get_topofields(text: &[Vec<Token>]) {
                     .features()
                     .map(|f| f.as_map().clone())
                     .unwrap_or(BTreeMap::new());
-                let tf = features.get("tf").expect("No features").clone().expect("No topo field info");
+                let tf = features
+                    .get("tf")
+                    .expect("No features")
+                    .clone()
+                    .expect("No topo field info");
 
-                if token.head().expect("No head") > 0 { // head is not ROOT token
-                    let head = &sent[token.head().expect("No head")-1];
+                if token.head().expect("No head") > 0 {
+                    // head is not ROOT token
+                    let head = &sent[token.head().expect("No head") - 1];
                     let head_features = head
                         .features()
                         .map(|f| f.as_map().clone())
                         .unwrap_or(BTreeMap::new());
-                    let head_tf = head_features.get("tf").expect("No features").clone().expect("No topo field info");
+                    let head_tf = head_features
+                        .get("tf")
+                        .expect("No features")
+                        .clone()
+                        .expect("No topo field info");
                     if tf == "C" {
                         if head_tf == "C" {
                             example_sents_C[0].push(sent.to_owned());
                         } else if head_tf == "LV" {
                             example_sents_C[1].push(sent.to_owned());
-                        }  else if head_tf == "VF" {
+                        } else if head_tf == "VF" {
                             example_sents_C[2].push(sent.to_owned());
                         } else if head_tf == "LK" {
                             example_sents_C[3].push(sent.to_owned());
@@ -59,7 +68,7 @@ pub fn get_topofields(text: &[Vec<Token>]) {
                             example_sents_LV[0].push(sent.to_owned());
                         } else if head_tf == "LV" {
                             example_sents_LV[1].push(sent.to_owned());
-                        }   else if head_tf == "VF" {
+                        } else if head_tf == "VF" {
                             example_sents_LV[2].push(sent.to_owned());
                         } else if head_tf == "LK" {
                             example_sents_LV[3].push(sent.to_owned());
@@ -77,7 +86,7 @@ pub fn get_topofields(text: &[Vec<Token>]) {
                             example_sents_VF[0].push(sent.to_owned());
                         } else if head_tf == "LV" {
                             example_sents_VF[1].push(sent.to_owned());
-                        }   else if head_tf == "VF" {
+                        } else if head_tf == "VF" {
                             example_sents_VF[2].push(sent.to_owned());
                         } else if head_tf == "LK" {
                             example_sents_VF[3].push(sent.to_owned());
@@ -95,7 +104,7 @@ pub fn get_topofields(text: &[Vec<Token>]) {
                             example_sents_MF[0].push(sent.to_owned());
                         } else if head_tf == "LV" {
                             example_sents_MF[1].push(sent.to_owned());
-                        }   else if head_tf == "VF" {
+                        } else if head_tf == "VF" {
                             example_sents_MF[2].push(sent.to_owned());
                         } else if head_tf == "LK" {
                             example_sents_MF[3].push(sent.to_owned());
@@ -113,7 +122,7 @@ pub fn get_topofields(text: &[Vec<Token>]) {
                             example_sents_NF[0].push(sent.to_owned());
                         } else if head_tf == "LV" {
                             example_sents_NF[1].push(sent.to_owned());
-                        }   else if head_tf == "VF" {
+                        } else if head_tf == "VF" {
                             example_sents_NF[2].push(sent.to_owned());
                         } else if head_tf == "LK" {
                             example_sents_NF[3].push(sent.to_owned());
@@ -131,7 +140,7 @@ pub fn get_topofields(text: &[Vec<Token>]) {
                             example_sents_VC[0].push(sent.to_owned());
                         } else if head_tf == "LV" {
                             example_sents_VC[1].push(sent.to_owned());
-                        }   else if head_tf == "VF" {
+                        } else if head_tf == "VF" {
                             example_sents_VC[2].push(sent.to_owned());
                         } else if head_tf == "LK" {
                             example_sents_VC[3].push(sent.to_owned());
@@ -158,7 +167,7 @@ pub fn get_topofields(text: &[Vec<Token>]) {
 
     println!("--Complementizer--");
     for i in 0..7 {
-        println!("{}: {}", i+1, example_sents_C[i].len());
+        println!("{}: {}", i + 1, example_sents_C[i].len());
         if example_sents_C[i].len() > 10 {
             for j in 0..10 {
                 for token in example_sents_C[i][j].iter() {
@@ -171,7 +180,7 @@ pub fn get_topofields(text: &[Vec<Token>]) {
     }
     println!("--LV complex--");
     for i in 0..7 {
-        println!("{}: {}", i+1, example_sents_LV[i].len());
+        println!("{}: {}", i + 1, example_sents_LV[i].len());
         if example_sents_LV[i].len() > 10 {
             for j in 0..10 {
                 for token in example_sents_LV[i][j].iter() {
@@ -184,7 +193,7 @@ pub fn get_topofields(text: &[Vec<Token>]) {
     }
     println!("--Vorfeld--");
     for i in 0..7 {
-        println!("{}: {}", i+1, example_sents_VF[i].len());
+        println!("{}: {}", i + 1, example_sents_VF[i].len());
         if example_sents_VF[i].len() > 10 {
             for j in 0..10 {
                 for token in example_sents_VF[i][j].iter() {
@@ -197,7 +206,7 @@ pub fn get_topofields(text: &[Vec<Token>]) {
     }
     println!("--Mittelfeld--");
     for i in 0..7 {
-        println!("{}: {}", i+1, example_sents_MF[i].len());
+        println!("{}: {}", i + 1, example_sents_MF[i].len());
         if example_sents_MF[i].len() > 10 {
             for j in 0..10 {
                 for token in example_sents_MF[i][j].iter() {
@@ -210,7 +219,7 @@ pub fn get_topofields(text: &[Vec<Token>]) {
     }
     println!("--Nachfeld--");
     for i in 0..7 {
-        println!("{}: {}", i+1, example_sents_NF[i].len());
+        println!("{}: {}", i + 1, example_sents_NF[i].len());
         if example_sents_NF[i].len() > 10 {
             for j in 0..10 {
                 for token in example_sents_NF[i][j].iter() {
@@ -223,7 +232,7 @@ pub fn get_topofields(text: &[Vec<Token>]) {
     }
     println!("--Verbal complex--");
     for i in 0..7 {
-        println!("{}: {}", i+1, example_sents_VC[i].len());
+        println!("{}: {}", i + 1, example_sents_VC[i].len());
         if example_sents_VC[i].len() > 10 {
             for j in 0..10 {
                 for token in example_sents_VC[i][j].iter() {

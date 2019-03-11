@@ -9,7 +9,6 @@ use std::collections::HashMap;
 
 /// Read token ngrams, their deprels and save into map of shape <deprel, ngrams related by deprel>
 pub fn get_ngrams(sentences: &Vec<Vec<Token>>, ngram_size: usize) -> HashMap<String, Vec<String>> {
-
     let mut rel_map: HashMap<String, Vec<String>> = HashMap::new(); //TODO: rather use a set than a vec here?
 
     for sentence in sentences {
@@ -37,7 +36,10 @@ pub fn get_ngrams(sentences: &Vec<Vec<Token>>, ngram_size: usize) -> HashMap<Str
                 }
 
                 ngram_concat.push_str("\n");
-                deprels = deprels.chars().filter(|&c| !deprels.contains("-")).collect();
+                deprels = deprels
+                    .chars()
+                    .filter(|&c| !deprels.contains("-"))
+                    .collect();
 
                 let n = ngram_concat.clone();
                 if rel_map.contains_key(&deprels) {

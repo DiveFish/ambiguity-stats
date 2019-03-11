@@ -1,12 +1,12 @@
 extern crate conllx;
 
 use conllx::Token;
-use std::collections::{HashMap, HashSet};
-use {DependencyGraph, DependencyNode, first_matching_edge, sentence_to_graph, to_dot};
-use petgraph::dot::{Dot, Config};
-use petgraph::EdgeDirection;
+use petgraph::dot::{Config, Dot};
 use petgraph::graph::NodeIndex;
 use petgraph::visit::EdgeRef;
+use petgraph::EdgeDirection;
+use std::collections::{HashMap, HashSet};
+use {first_matching_edge, sentence_to_graph, to_dot, DependencyGraph, DependencyNode};
 
 //TODO: Unfinished code
 
@@ -25,14 +25,17 @@ const VERB_PREFIX: char = 'V';
 // Credits to Daniël de Kok
 
 lazy_static! {
-    static ref PP_RELATIONS: HashSet<&'static str> = [PP_RELATION, OBJP_RELATION].iter().cloned().collect();
+    static ref PP_RELATIONS: HashSet<&'static str> =
+        [PP_RELATION, OBJP_RELATION].iter().cloned().collect();
 }
 
 macro_rules! ok_or_continue {
-    ($expr:expr) => (match $expr {
-        Some(val) => val,
-        None => continue,
-    })
+    ($expr:expr) => {
+        match $expr {
+            Some(val) => val,
+            None => continue,
+        }
+    };
 }
 
 //
@@ -42,17 +45,19 @@ macro_rules! ok_or_continue {
 /// Get trigram of shape <dep1 - head - dep2> and <dep2 - head - dep1>
 /// for specific dependency relation combinations, e.g. for SUBJ-ROOT-OBJ
 /// and OBJ-ROOT-SUBJ, look for dep1=SUBJ and dep2=OBJD.
-pub fn get_graph_ngrams(sentences: &Vec<Vec<Token>>, max_depth: usize,
-                        dep1: &str, dep2: &str) -> HashMap<String, Vec<String>> {
-
+pub fn get_graph_ngrams(
+    sentences: &Vec<Vec<Token>>,
+    max_depth: usize,
+    dep1: &str,
+    dep2: &str,
+) -> HashMap<String, Vec<String>> {
     let mut rel_map: HashMap<String, Vec<String>> = HashMap::new();
 
     for sentence in sentences {
-
         let mut dep1idx = NodeIndex::new(0);
-        let mut dep2idx= NodeIndex::new(0);
-        let mut dep1headidx= NodeIndex::new(0);
-        let mut dep2headidx= NodeIndex::new(0);
+        let mut dep2idx = NodeIndex::new(0);
+        let mut dep1headidx = NodeIndex::new(0);
+        let mut dep2headidx = NodeIndex::new(0);
         let mut updated1 = false;
         let mut updated2 = false;
 
@@ -78,7 +83,7 @@ pub fn get_graph_ngrams(sentences: &Vec<Vec<Token>>, max_depth: usize,
             }
 
             let head_node = &sentence_graph[edge_ref.source()];
-/*
+            /*
             // Check that the head is a verb.
             let tag = ok_or_continue!(head_node.token.pos());
             if !tag.starts_with(VERB_PREFIX) {
@@ -93,8 +98,12 @@ pub fn get_graph_ngrams(sentences: &Vec<Vec<Token>>, max_depth: usize,
                 updates.push((prep_offset, content_verb_offset));
             }
 */
-            if dep1idx.index() > 0 && dep2idx.index() > 0 && dep1headidx == dep2headidx
-                && updated1 && updated2 {
+            if dep1idx.index() > 0
+                && dep2idx.index() > 0
+                && dep1headidx == dep2headidx
+                && updated1
+                && updated2
+            {
                 //rel_map.insert();
             }
         }
