@@ -74,14 +74,27 @@ fn get_files(dir: &Path, files: &mut Vec<String>) {
     }
 }
 
-pub fn compute_mi_to_dpar_pmis(input_dir: &Path, output_filename: &str) -> io::Result<()> {
+pub fn bigram_pmi_to_dpar_pmis(
+    input_dir: &Path,
+    output_filename: &str,
+    file_ending: &str,
+) -> io::Result<()> {
     if fs::metadata(&output_filename).is_ok() {
         println!("Appending to file ({})", output_filename);
-        let mut file = OpenOptions::new().append(true).open(output_filename).unwrap();
+        let mut file = OpenOptions::new()
+            .append(true)
+            .open(output_filename)
+            .unwrap();
         if input_dir.is_dir() {
             for entry in fs::read_dir(input_dir).unwrap() {
                 let path = entry.unwrap().path();
-                if path.to_str().unwrap().clone().to_string().ends_with("nsc") {
+                if path
+                    .to_str()
+                    .unwrap()
+                    .clone()
+                    .to_string()
+                    .ends_with(file_ending)
+                {
                     if path.is_file() {
                         let f = File::open(&path)?;
                         for l in BufReader::new(f).lines() {
@@ -105,7 +118,13 @@ pub fn compute_mi_to_dpar_pmis(input_dir: &Path, output_filename: &str) -> io::R
         if input_dir.is_dir() {
             for entry in fs::read_dir(input_dir).unwrap() {
                 let path = entry.unwrap().path();
-                if path.to_str().unwrap().clone().to_string().ends_with("nsc") {
+                if path
+                    .to_str()
+                    .unwrap()
+                    .clone()
+                    .to_string()
+                    .ends_with(file_ending)
+                {
                     if path.is_file() {
                         let f = File::open(&path)?;
                         for l in BufReader::new(f).lines() {
@@ -126,4 +145,147 @@ pub fn compute_mi_to_dpar_pmis(input_dir: &Path, output_filename: &str) -> io::R
     }
 
     Ok(())
+}
+
+pub fn trigram_pmi_to_dpar_pmis(input_dir: &Path, output_filename: &str) -> io::Result<()> {
+    if fs::metadata(&output_filename).is_ok() {
+        println!("Appending to file ({})", output_filename);
+        let mut file = OpenOptions::new()
+            .append(true)
+            .open(output_filename)
+            .unwrap();
+        if input_dir.is_dir() {
+            for entry in fs::read_dir(input_dir).unwrap() {
+                let path = entry.unwrap().path();
+                if path.to_str().unwrap().clone().to_string().ends_with("nsc") {
+                    if path.is_file() {
+                        let f = File::open(&path)?;
+                        for l in BufReader::new(f).lines() {
+                            let l = l.unwrap();
+                            let filename = path.file_stem().unwrap().to_string_lossy().to_string();
+                            let deprels = filename.split("_").collect::<Vec<_>>();
+                            let (d1, d2) = (deprels[0], deprels[1]);
+                            let line = l.split("\t").collect::<Vec<_>>();
+                            let (w1, w2, w3, pmi) = (
+                                line[0].to_string(),
+                                line[1].to_string(),
+                                line[2].to_string(),
+                                line[3].to_string(),
+                            );
+                            writeln!(file, "{}\t{}\t{}\t{}\t{}\t{}", w1, w2, w3, d1, d2, pmi);
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        println!("Creating new file \"{}\"", output_filename);
+        let mut file = File::create(&output_filename)?;
+        if input_dir.is_dir() {
+            for entry in fs::read_dir(input_dir).unwrap() {
+                let path = entry.unwrap().path();
+                if path.to_str().unwrap().clone().to_string().ends_with("nsc") {
+                    if path.is_file() {
+                        let f = File::open(&path)?;
+                        for l in BufReader::new(f).lines() {
+                            let l = l.unwrap();
+                            let filename = path.file_stem().unwrap().to_string_lossy().to_string();
+                            let deprels = filename.split("_").collect::<Vec<_>>();
+                            let (d1, d2) = (deprels[0], deprels[1]);
+                            let line = l.split("\t").collect::<Vec<_>>();
+                            let (w1, w2, w3, pmi) = (
+                                line[0].to_string(),
+                                line[1].to_string(),
+                                line[2].to_string(),
+                                line[3].to_string(),
+                            );
+                            writeln!(file, "{}\t{}\t{}\t{}\t{}\t{}", w1, w2, w3, d1, d2, pmi);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(())
+}
+
+/// Read association strengths for dependency triples from a text file.
+///
+/// Such a text file consists of lines with the tab-separated format
+///
+/// ~~~text,no_run
+/// [token+] [token+] [deprel+] association_strength
+/// ~~~
+pub fn combine_assoc_files(
+    in_large: File,
+    in_small: File,
+) -> io::Result<HashMap<(String, String, String), f32>> {
+    let mut association_strengths: HashMap<(String, String, String), f32> = HashMap::new();
+    for l in BufReader::new(in_large).lines() {
+        let l = l.unwrap();
+        let line = l.split("\t").collect::<Vec<_>>();
+
+        let triple = (
+            line[0].to_string(),
+            line[1].to_string(),
+            line[2].to_string(),
+        );
+        association_strengths.insert((triple), line[3].parse::<f32>().unwrap());
+    }
+
+    for l in BufReader::new(in_small).lines() {
+        let l = l.unwrap();
+        let line = l.split("\t").collect::<Vec<_>>();
+
+        let triple = (
+            line[0].to_string(),
+            line[1].to_string(),
+            line[2].to_string(),
+        );
+
+        if !association_strengths.contains_key(&triple) {
+            association_strengths.insert(triple, line[3].parse::<f32>().unwrap());
+        }
+    }
+    Ok(association_strengths)
+}
+
+pub fn combine_tri_bigram_files(
+    in_tri: File,
+    in_bi: File,
+) -> io::Result<HashMap<(String, String, String, String, String), f32>> {
+    let mut association_strengths: HashMap<(String, String, String, String, String), f32> =
+        HashMap::new();
+    for l in BufReader::new(in_tri).lines() {
+        let l = l.unwrap();
+        let line = l.split("\t").collect::<Vec<_>>();
+
+        let tuple = (
+            line[0].to_string(),
+            line[1].to_string(),
+            line[2].to_string(),
+            line[3].to_string(),
+            line[4].to_string(),
+        );
+        association_strengths.insert((tuple), line[5].parse::<f32>().unwrap());
+    }
+
+    for l in BufReader::new(in_bi).lines() {
+        let l = l.unwrap();
+        let line = l.split("\t").collect::<Vec<_>>();
+
+        let triple = (
+            "_".to_string(),
+            line[0].to_string(),
+            line[1].to_string(),
+            "_".to_string(),
+            line[2].to_string(),
+        );
+
+        if !association_strengths.contains_key(&triple) {
+            association_strengths.insert(triple, line[3].parse::<f32>().unwrap());
+        }
+    }
+    Ok(association_strengths)
 }

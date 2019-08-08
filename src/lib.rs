@@ -9,8 +9,11 @@ extern crate lazy_static;
 mod ambiguities;
 pub use ambiguities::*;
 
-mod comps;
-pub use comps::*;
+mod comp;
+pub use comp::*;
+
+mod error_analysis;
+pub use error_analysis::*;
 
 mod io;
 pub use io::*;

@@ -48,3 +48,50 @@ pub fn sort_pmi_file(input_file: &str, ngram_size: usize, output_file: &str) -> 
     }
     Ok(())
 }
+
+pub fn get_pmi(
+    focus_words: &[String],
+    context_words: &[String],
+    deprels: &[String],
+    input_file: &str,
+) -> Result<()> {
+    assert_eq!(focus_words.len(), context_words.len());
+    assert_eq!(focus_words.len(), deprels.len());
+
+    let path = Path::new(input_file);
+    let file = match File::open(input_file) {
+        Err(why) => panic!("Couldn't open {}: {}", path.display(), why.description()),
+        Ok(file) => file,
+    };
+
+    let mut association_strengths: HashMap<(String, String, String), f32> = HashMap::new();
+    for l in BufReader::new(file).lines() {
+        let l = l.unwrap();
+        let line = l.split("\t").collect::<Vec<_>>();
+        association_strengths.insert(
+            (
+                line[0].to_string(),
+                line[1].to_string(),
+                line[2].to_string(),
+            ),
+            line[3].parse::<f32>().unwrap(),
+        );
+    }
+
+    for idx in 0..focus_words.len() {
+        let head = &focus_words[idx];
+        let dependent = &context_words[idx];
+        let deprel = &deprels[idx];
+        let dep_triple = (head.to_string(), dependent.to_string(), deprel.to_string());
+        let association_strength = match association_strengths.get(&dep_triple) {
+            Some(association_strength) => *association_strength,
+            None => -1f32,
+        };
+        println!(
+            "PMI of {} {} {}: {}",
+            head, dependent, deprel, association_strength
+        );
+    }
+
+    Ok(())
+}

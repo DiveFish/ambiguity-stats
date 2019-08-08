@@ -36,37 +36,3 @@ pub fn check_deprels(token1: &Token, deprel1: &str, token2: &Token, deprel2: &st
 pub fn check_postags(token1: &Token, pos1: &str, token2: &Token, pos2: &str) -> bool {
     (token1.pos().expect("No PoS tag") == pos1) && (token2.pos().expect("No PoS tag") == pos2)
 }
-
-//TODO: Fix variable initialization
-#[cfg(test)]
-mod tests {
-    use comps::*;
-
-    //use tests::{TOKEN_1, TOKEN_2};
-    use std::fs::File;
-    use std::io::BufReader;
-
-    extern crate conllx;
-    use conllx::{ReadSentence, Reader, Token};
-
-    static sent: Vec<Vec<Token>> =
-        Reader::new(BufReader::new(File::open("data/testdata.conll").unwrap()))
-            .sentences()
-            .map(|s| s.unwrap())
-            .collect();
-
-    #[test]
-    fn test_heads_and_deprels_equal() {
-        assert!(heads_and_deprels_equal(&sent[0][0], &sent[0][0]), true);
-    }
-
-    #[test]
-    fn test1_check_deprels() {
-        assert!(check_deprels(&sent[0][0], "ART", &sent[0][1], "NN"), true);
-    }
-
-    #[test]
-    fn test2_check_deprels() {
-        assert!(check_deprels(&sent[0][0], "ART", &sent[0][1], "ART"), false);
-    }
-}

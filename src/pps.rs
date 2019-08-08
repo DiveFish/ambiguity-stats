@@ -3,6 +3,7 @@ extern crate conllx;
 use conllx::{Features, Token};
 use std::collections::BTreeMap;
 
+/// Filter prepositional phrases by the topological field in which they occur.
 pub fn get_topofields(text: &[Vec<Token>]) {
     let fields = &["VF", "LK", "MF", "RK", "NF"];
 

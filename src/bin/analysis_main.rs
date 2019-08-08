@@ -17,12 +17,14 @@ pub fn main() {
                 .help("Sets the gold data file to use")
                 .required(true)
                 .index(1),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("INPUT_NONGOLD")
                 .help("Sets the parser data file to use")
                 .required(true)
                 .index(2),
-        ).get_matches();
+        )
+        .get_matches();
 
     let golddatafile = matches.value_of("INPUT_GOLD").unwrap();
     let parserdatafile = matches.value_of("INPUT_NONGOLD").unwrap();
@@ -87,51 +89,50 @@ pub fn errors(golddata: &[Vec<Token>], parserdata: &[Vec<Token>]) {   //Check if
         "PTKZU", "PTKNEG", "PTKVZ", "PTKANT", "PTKA", "TRUNC", "VVFIN", "VVIMP", "VVINF", "VVIZU",
         "VVPP", "VAFIN", "VAIMP", "VAINF", "VAPP", "VMFIN", "VMINF", "VMPP", "XY", "$,", "$.", "$("];
     */
+let attachments = 178430;
 
-    let attachments = 178430;
+for label in labels.iter() {
 
-    for label in labels.iter() {
+let mut idx = 0;
+let mut all_attachments = 0;
+let mut all_combined_errors = 0;
+let mut all_head_errors = 0;
+let mut all_label_errors = 0;
+let mut all_wrong_labels: HashMap<String, usize> = HashMap::new();
 
-        let mut idx = 0;
-        let mut all_attachments = 0;
-        let mut all_combined_errors = 0;
-        let mut all_head_errors = 0;
-        let mut all_label_errors = 0;
-        let mut all_wrong_labels: HashMap<String, usize> = HashMap::new();
+for sent in &golddata {
 
-        for sent in &golddata {
+//let (overall_count, error) = get_ambiguity_counts(&sent, &parserdata.get(idx).expect("No sentence"), get_all_pp_ambigs);
+let (attachments, combined_errors, head_errors, label_errors, wrong_labels) = get_errors_by_labels(&label, &sent, &parserdata.get(idx).expect("No sentence"));
 
-            //let (overall_count, error) = get_ambiguity_counts(&sent, &parserdata.get(idx).expect("No sentence"), get_all_pp_ambigs);
-            let (attachments, combined_errors, head_errors, label_errors, wrong_labels) = get_errors_by_labels(&label, &sent, &parserdata.get(idx).expect("No sentence"));
+all_attachments += attachments;
+all_combined_errors += combined_errors;
+all_head_errors += head_errors;
+all_label_errors += label_errors;
+idx += 1;
 
-            all_attachments += attachments;
-            all_combined_errors += combined_errors;
-            all_head_errors += head_errors;
-            all_label_errors += label_errors;
-            idx += 1;
-
-            for (label, freq) in wrong_labels.iter() {
-                *all_wrong_labels.entry(label.clone()).or_insert(0) += freq;
-            }
-        }
-        let las = 1.0 - (all_combined_errors + all_head_errors + all_label_errors) as f32 / all_attachments as f32;
-        let uas = 1.0 - ((all_combined_errors + all_head_errors) as f32 / all_attachments as f32);
-        let all_errors = all_combined_errors + all_head_errors + all_label_errors;
-        println!("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}", label, all_attachments, all_combined_errors, all_head_errors, all_label_errors, all_errors, las, uas);
-        //print!("{}", label);
-        let mut wrong_label_vec: Vec<_> = all_wrong_labels.iter().collect();
-        wrong_label_vec.sort_by(|a, b| b.1.cmp(&a.1));
-        let mut i: usize = 0;
-        while i < 10 && wrong_label_vec.len() > i {
-            //print!("\t{:?} ", wrong_label_vec[i]);
-            i += 1;
-        }
-        let mut count: usize = 0;
-        for (_, freq) in wrong_label_vec.iter() {
-            count += *freq;
-        }
-        //println!("\n{}", count);
-        //println!();
-    }
+for (label, freq) in wrong_labels.iter() {
+ *all_wrong_labels.entry(label.clone()).or_insert(0) += freq;
+}
+}
+let las = 1.0 - (all_combined_errors + all_head_errors + all_label_errors) as f32 / all_attachments as f32;
+let uas = 1.0 - ((all_combined_errors + all_head_errors) as f32 / all_attachments as f32);
+let all_errors = all_combined_errors + all_head_errors + all_label_errors;
+println!("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}", label, all_attachments, all_combined_errors, all_head_errors, all_label_errors, all_errors, las, uas);
+//print!("{}", label);
+let mut wrong_label_vec: Vec<_> = all_wrong_labels.iter().collect();
+wrong_label_vec.sort_by(|a, b| b.1.cmp(&a.1));
+let mut i: usize = 0;
+while i < 10 && wrong_label_vec.len() > i {
+//print!("\t{:?} ", wrong_label_vec[i]);
+i += 1;
+}
+let mut count: usize = 0;
+for (_, freq) in wrong_label_vec.iter() {
+count += *freq;
+}
+//println!("\n{}", count);
+//println!();
+}
 }
 */

@@ -15,12 +15,14 @@ pub fn main() {
                 .help("Sets the gold data file to use")
                 .required(true)
                 .index(1),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("INPUT_NONGOLD")
                 .help("Sets the parser data file to use")
                 .required(true)
                 .index(2),
-        ).get_matches();
+        )
+        .get_matches();
 
     let golddatafile = matches.value_of("INPUT_GOLD").unwrap();
     let parserdatafile = matches.value_of("INPUT_NONGOLD").unwrap();
@@ -28,4 +30,11 @@ pub fn main() {
 
     let (las, uas) = las_uas(&parserdata, &golddata);
     println!("LAS {:?} and UAS {:?}", las, uas);
+
+    /*
+    let per_sent_las = per_sent_las(&parserdata, &golddata);
+    for las in per_sent_las {
+        println!("{}", las);
+    }
+    */
 }

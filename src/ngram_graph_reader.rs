@@ -84,20 +84,20 @@ pub fn get_graph_ngrams(
 
             let head_node = &sentence_graph[edge_ref.source()];
             /*
-            // Check that the head is a verb.
-            let tag = ok_or_continue!(head_node.token.pos());
-            if !tag.starts_with(VERB_PREFIX) {
-                continue;
-            }
+                        // Check that the head is a verb.
+                        let tag = ok_or_continue!(head_node.token.pos());
+                        if !tag.starts_with(VERB_PREFIX) {
+                            continue;
+                        }
 
-            let content_verb_idx = resolve_verb(&sentence_graph, edge_ref.source());
-            if content_verb_idx != edge_ref.source() {
-                let prep_offset = sentence_graph[edge_ref.target()].offset;
-                let content_verb_offset = sentence_graph[content_verb_idx].offset;
+                        let content_verb_idx = resolve_verb(&sentence_graph, edge_ref.source());
+                        if content_verb_idx != edge_ref.source() {
+                            let prep_offset = sentence_graph[edge_ref.target()].offset;
+                            let content_verb_offset = sentence_graph[content_verb_idx].offset;
 
-                updates.push((prep_offset, content_verb_offset));
-            }
-*/
+                            updates.push((prep_offset, content_verb_offset));
+                        }
+            */
             if dep1idx.index() > 0
                 && dep2idx.index() > 0
                 && dep1headidx == dep2headidx

@@ -32,23 +32,25 @@ pub fn get_deprel_ngrams(
             while depth < max_depth && prev_head > 0 {
                 match cur_token.head() {
                     None => break,
-                    Some(head) => if head == 0 {
-                        // Head is ROOT
-                        ngram.push_str(" ROOT");
-                        deprels.push_str("_ROOT");
-                        prev_head = head;
-                    } else {
-                        deprels.push_str(&cur_token.head_rel().unwrap());
-                        deprels.push_str("_");
-                        cur_token = sentence[head - 1].clone();
-                        ngram.push_str(" ");
-                        if cur_token.pos().unwrap().starts_with('N') {
-                            ngram.push_str(&cur_token.form());
+                    Some(head) => {
+                        if head == 0 {
+                            // Head is ROOT
+                            ngram.push_str(" ROOT");
+                            deprels.push_str("_ROOT");
+                            prev_head = head;
                         } else {
-                            ngram.push_str(&cur_token.form().to_lowercase());
+                            deprels.push_str(&cur_token.head_rel().unwrap());
+                            deprels.push_str("_");
+                            cur_token = sentence[head - 1].clone();
+                            ngram.push_str(" ");
+                            if cur_token.pos().unwrap().starts_with('N') {
+                                ngram.push_str(&cur_token.form());
+                            } else {
+                                ngram.push_str(&cur_token.form().to_lowercase());
+                            }
+                            prev_head = head;
                         }
-                        prev_head = head;
-                    },
+                    }
                 }
                 depth += 1;
             }
@@ -82,31 +84,37 @@ pub fn get_deprel_bigrams(sentences: &Vec<Vec<Token>>) -> HashMap<String, Vec<St
             let mut token_form = "".to_string();
             match token.pos() {
                 None => continue,
-                Some(pos) => if pos.starts_with("N") {
-                    token_form = token.form().to_string();
-                } else {
-                    token_form = token.form().to_lowercase();
-                },
+                Some(pos) => {
+                    if pos.starts_with("N") {
+                        token_form = token.form().to_string();
+                    } else {
+                        token_form = token.form().to_lowercase();
+                    }
+                }
             }
 
             match token.head() {
                 None => break,
-                Some(head) => if head == 0 {
-                    // Head is ROOT
-                    ngram = format!("ROOT {}\n", token_form);
-                } else {
-                    let mut head_form = "".to_string();
-                    match sentence[head - 1].pos() {
-                        None => continue,
-                        Some(pos) => if pos.starts_with("N") {
-                            head_form = sentence[head - 1].form().to_string();
-                        } else {
-                            head_form = sentence[head - 1].form().to_lowercase();
-                        },
-                    }
+                Some(head) => {
+                    if head == 0 {
+                        // Head is ROOT
+                        ngram = format!("ROOT {}\n", token_form);
+                    } else {
+                        let mut head_form = "".to_string();
+                        match sentence[head - 1].pos() {
+                            None => continue,
+                            Some(pos) => {
+                                if pos.starts_with("N") {
+                                    head_form = sentence[head - 1].form().to_string();
+                                } else {
+                                    head_form = sentence[head - 1].form().to_lowercase();
+                                }
+                            }
+                        }
 
-                    ngram = format!("{} {}\n", head_form, token_form);
-                },
+                        ngram = format!("{} {}\n", head_form, token_form);
+                    }
+                }
             }
             let deprel = token.head_rel().expect("No deprel");
             if rel_map.contains_key(deprel) {
