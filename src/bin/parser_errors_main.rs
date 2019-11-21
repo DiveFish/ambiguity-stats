@@ -72,6 +72,12 @@ pub fn errors(golddata: &[Vec<Token>], parserdata: &[Vec<Token>]) {
         "SUBJ",
         "SUBJC",
         "ZEIT",
+        "-PUNCT-",
+        "-UNKNOWN-",
+        "_",
+        "ROOT",
+        "gmod-app"
+
     ];
 
     //println!("Label -- head-label errors -- head errors -- label errors");
@@ -109,7 +115,7 @@ pub fn errors(golddata: &[Vec<Token>], parserdata: &[Vec<Token>]) {
         let error_sum = all_combined_errors + all_head_errors + all_label_errors;
 
         println!(
-            "{}\t{:?}\n\t{:?}\n\t{:?}",
+            "{}\t{:?}\t{:?}\t{:?}",
             label, all_combined_errors, all_head_errors, all_label_errors
         );
         //println!("# sents: {}, # of tokens: {}", sent_cnt, token_cnt);
@@ -117,6 +123,7 @@ pub fn errors(golddata: &[Vec<Token>], parserdata: &[Vec<Token>]) {
         let mut wrong_label_vec: Vec<_> = all_wrong_labels.iter().collect();
         wrong_label_vec.sort_by(|a, b| b.1.cmp(&a.1));
 
+        /*
         let mut i: usize = 0;
         print!("\t");
         while i < 5 && wrong_label_vec.len() > i {
@@ -126,7 +133,6 @@ pub fn errors(golddata: &[Vec<Token>], parserdata: &[Vec<Token>]) {
         println!();
 
         // Get total number of errors per label
-        /*
         let mut count: usize = 0;
         for (_, freq) in wrong_label_vec.iter() {
             count += *freq;

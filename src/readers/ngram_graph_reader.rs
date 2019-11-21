@@ -1,12 +1,13 @@
 extern crate conllx;
 
 use conllx::Token;
-use petgraph::dot::{Config, Dot};
+//use petgraph::dot::{Config, Dot};
 use petgraph::graph::NodeIndex;
 use petgraph::visit::EdgeRef;
-use petgraph::EdgeDirection;
+//use petgraph::EdgeDirection;
 use std::collections::{HashMap, HashSet};
-use {first_matching_edge, sentence_to_graph, to_dot, DependencyGraph, DependencyNode};
+//use {first_matching_edge, to_dot, DependencyGraph, DependencyNode};
+use sentence_to_graph;
 
 //TODO: Unfinished code
 
@@ -19,7 +20,7 @@ static OBJP_RELATION: &'static str = "OBJP";
             }
 */
 
-const VERB_PREFIX: char = 'V';
+const _VERB_PREFIX: char = 'V';
 
 // Code in this file partially taken from conllx-utils repository
 // Credits to Daniël de Kok
@@ -47,11 +48,11 @@ macro_rules! ok_or_continue {
 /// and OBJ-ROOT-SUBJ, look for dep1=SUBJ and dep2=OBJD.
 pub fn get_graph_ngrams(
     sentences: &Vec<Vec<Token>>,
-    max_depth: usize,
+    _max_depth: usize,
     dep1: &str,
     dep2: &str,
 ) -> HashMap<String, Vec<String>> {
-    let mut rel_map: HashMap<String, Vec<String>> = HashMap::new();
+    let rel_map: HashMap<String, Vec<String>> = HashMap::new(); //TODO: Change to mut
 
     for sentence in sentences {
         let mut dep1idx = NodeIndex::new(0);
@@ -82,8 +83,8 @@ pub fn get_graph_ngrams(
                 continue;
             }
 
-            let head_node = &sentence_graph[edge_ref.source()];
             /*
+            let head_node = &sentence_graph[edge_ref.source()];
                         // Check that the head is a verb.
                         let tag = ok_or_continue!(head_node.token.pos());
                         if !tag.starts_with(VERB_PREFIX) {

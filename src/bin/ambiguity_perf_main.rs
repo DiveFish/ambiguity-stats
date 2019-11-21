@@ -28,6 +28,15 @@ pub fn main() {
     let parserdatafile = matches.value_of("INPUT_NONGOLD").unwrap();
     let (golddata, parserdata) = read_gng_data(golddatafile, parserdatafile);
 
+
+    let (precision, recall, f1_score) = prec_rec_f1(&golddata, &parserdata, true,pp_ud_acc_comps);
+    println!(
+        "Filename: {:?}\nPrecision: {:?}\nRecall: {:?}\nF1 score: {:?}",
+        parserdatafile, precision, recall, f1_score
+    );
+
+    /*
+    // Get error rates for ambiguous structures
     let mut n_ambigs = 0;
     let mut n_ambigs_errs = 0;
 
@@ -42,4 +51,5 @@ pub fn main() {
         "Filename: {:?}\n# Overall count: {:?}\n# errors: {:?}\n% erroneous: {:?}",
         parserdatafile, n_ambigs, n_ambigs_errs, acc
     );
+    */
 }

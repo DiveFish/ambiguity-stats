@@ -79,9 +79,9 @@ pub fn get_deprel_bigrams(sentences: &Vec<Vec<Token>>) -> HashMap<String, Vec<St
 
     for sentence in sentences {
         for token in sentence {
-            let mut ngram = "".to_string();
+            let mut ngram;
 
-            let mut token_form = "".to_string();
+            let mut token_form;
             match token.pos() {
                 None => continue,
                 Some(pos) => {
@@ -100,7 +100,7 @@ pub fn get_deprel_bigrams(sentences: &Vec<Vec<Token>>) -> HashMap<String, Vec<St
                         // Head is ROOT
                         ngram = format!("ROOT {}\n", token_form);
                     } else {
-                        let mut head_form = "".to_string();
+                        let mut head_form;
                         match sentence[head - 1].pos() {
                             None => continue,
                             Some(pos) => {

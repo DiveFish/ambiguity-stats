@@ -147,7 +147,11 @@ pub fn bigram_pmi_to_dpar_pmis(
     Ok(())
 }
 
-pub fn trigram_pmi_to_dpar_pmis(input_dir: &Path, output_filename: &str) -> io::Result<()> {
+pub fn bigram_UD_pmi_to_dpar_pmis(
+    input_dir: &Path,
+    output_filename: &str,
+    file_ending: &str,
+) -> io::Result<()> {
     if fs::metadata(&output_filename).is_ok() {
         println!("Appending to file ({})", output_filename);
         let mut file = OpenOptions::new()
@@ -157,7 +161,86 @@ pub fn trigram_pmi_to_dpar_pmis(input_dir: &Path, output_filename: &str) -> io::
         if input_dir.is_dir() {
             for entry in fs::read_dir(input_dir).unwrap() {
                 let path = entry.unwrap().path();
-                if path.to_str().unwrap().clone().to_string().ends_with("nsc") {
+                if path
+                    .to_str()
+                    .unwrap()
+                    .clone()
+                    .to_string()
+                    .ends_with(file_ending)
+                    {
+                        if path.is_file() {
+                            let f = File::open(&path)?;
+                            for l in BufReader::new(f).lines() {
+                                let l = l.unwrap();
+                                let line = l.split("\t").collect::<Vec<_>>();
+                                let (w1, w2, deprel, pmi) = (
+                                    line[0].to_string(),
+                                    line[1].to_string(),
+                                    path.file_stem().unwrap().to_string_lossy().to_string(),
+                                    line[2].to_string(),
+                                );
+                                writeln!(file, "{}\t{}\t{}\t{}", w1, w2, deprel.replace("/", ":"), pmi);
+                            }
+                        }
+                    }
+            }
+        }
+    } else {
+        println!("Creating new file \"{}\"", output_filename);
+        let mut file = File::create(&output_filename)?;
+        if input_dir.is_dir() {
+            for entry in fs::read_dir(input_dir).unwrap() {
+                let path = entry.unwrap().path();
+                if path
+                    .to_str()
+                    .unwrap()
+                    .clone()
+                    .to_string()
+                    .ends_with(file_ending)
+                    {
+                        if path.is_file() {
+                            let f = File::open(&path)?;
+                            for l in BufReader::new(f).lines() {
+                                let l = l.unwrap();
+                                let line = l.split("\t").collect::<Vec<_>>();
+                                let (w1, w2, deprel, pmi) = (
+                                    line[0].to_string(),
+                                    line[1].to_string(),
+                                    path.file_stem().unwrap().to_string_lossy().to_string(),
+                                    line[2].to_string(),
+                                );
+                                writeln!(file, "{}\t{}\t{}\t{}", w1, w2, deprel.replace("/", ":"), pmi);
+                            }
+                        }
+                    }
+            }
+        }
+    }
+
+    Ok(())
+}
+
+pub fn trigram_pmi_to_dpar_pmis(
+    input_dir: &Path,
+    output_filename: &str,
+    file_ending: &str,
+) -> io::Result<()> {
+    if fs::metadata(&output_filename).is_ok() {
+        println!("Appending to file ({})", output_filename);
+        let mut file = OpenOptions::new()
+            .append(true)
+            .open(output_filename)
+            .unwrap();
+        if input_dir.is_dir() {
+            for entry in fs::read_dir(input_dir).unwrap() {
+                let path = entry.unwrap().path();
+                if path
+                    .to_str()
+                    .unwrap()
+                    .clone()
+                    .to_string()
+                    .ends_with(file_ending)
+                {
                     if path.is_file() {
                         let f = File::open(&path)?;
                         for l in BufReader::new(f).lines() {
@@ -184,7 +267,13 @@ pub fn trigram_pmi_to_dpar_pmis(input_dir: &Path, output_filename: &str) -> io::
         if input_dir.is_dir() {
             for entry in fs::read_dir(input_dir).unwrap() {
                 let path = entry.unwrap().path();
-                if path.to_str().unwrap().clone().to_string().ends_with("nsc") {
+                if path
+                    .to_str()
+                    .unwrap()
+                    .clone()
+                    .to_string()
+                    .ends_with(file_ending)
+                {
                     if path.is_file() {
                         let f = File::open(&path)?;
                         for l in BufReader::new(f).lines() {
@@ -231,7 +320,7 @@ pub fn combine_assoc_files(
             line[1].to_string(),
             line[2].to_string(),
         );
-        association_strengths.insert((triple), line[3].parse::<f32>().unwrap());
+        association_strengths.insert(triple, line[3].parse::<f32>().unwrap());
     }
 
     for l in BufReader::new(in_small).lines() {
@@ -268,7 +357,7 @@ pub fn combine_tri_bigram_files(
             line[3].to_string(),
             line[4].to_string(),
         );
-        association_strengths.insert((tuple), line[5].parse::<f32>().unwrap());
+        association_strengths.insert(tuple, line[5].parse::<f32>().unwrap());
     }
 
     for l in BufReader::new(in_bi).lines() {

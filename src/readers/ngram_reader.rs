@@ -3,7 +3,7 @@ use conllx::Token;
 
 use std::collections::HashMap;
 
-/// A utility class to read in with direct dependency relation.
+/// A utility class to read in token pairs with direct dependency relation.
 /// Save token pairs with same relation into same file,
 /// different relations into different files.
 

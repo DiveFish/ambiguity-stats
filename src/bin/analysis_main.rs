@@ -1,11 +1,15 @@
-extern crate ambiguity_stats;
 extern crate clap;
 extern crate conllx;
 
-use ambiguity_stats::*;
+extern crate ambiguity_stats;
+
 use clap::{App, Arg};
 use conllx::Token;
 use std::collections::HashMap;
+use std::string::String;
+use std::vec::Vec;
+
+use ambiguity_stats::*;
 
 pub fn main() {
     let matches = App::new("ambiguity-stats")
@@ -34,14 +38,14 @@ pub fn main() {
     let mut n_token = 0;
     for gold_sent in &golddata {
         n_sent += 1;
-        for i in 0..gold_sent.len() {
+        for _ in 0..gold_sent.len() {
             n_token += 1;
             //let gold_token = &gold_sent[i];
             //print!("{} ", gold_token.form());
         }
         //println!();
     }
-    println!("{:?} {:?}", n_sent, n_token);
+    println!("#sents {:?}, #tokens {:?}", n_sent, n_token);
     /*
     //get_topofields(golddata.as_slice());
 
@@ -58,17 +62,20 @@ pub fn main() {
     }
     println!("Ambiguity count: {},\terrors {}", occurrences_total, errors_total);
 
+    */
 
-    //Get number of errors, number of verbal and nominal head per preposition
+    //Get number of errors, number of verbal, nominal and other heads per preposition
     let mut preps: HashMap<String, Vec<usize>> = HashMap::new();
     for i in 0..golddata.len() {
-        pp_preps(&mut preps, &golddata[i], &parserdata[i]);
-    }
-    for (key, value) in preps.iter() {
-        println!("{}: #{:?}, {:?} errors; {} verb heads, {} noun heads, {} other", key, value[0], value[1], value[2], value[3], value[4]);
+        pp_preps_ud(&mut preps, &golddata[i]);
+        //pp_preps(&mut preps, &golddata[i], &parserdata[i]);
     }
 
-    */
+    println!("Preposition; Frequency; Errors; Verbal heads; Nominal heads; Other heads");
+    for (key, value) in preps.iter() {
+        println!("{}; {}; {}; {}; {}; {}", key, value[0], value[1], value[2], value[3], value[4]);
+    }
+
 }
 
 /*

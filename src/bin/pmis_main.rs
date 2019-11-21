@@ -2,10 +2,7 @@ extern crate ambiguity_stats;
 extern crate clap;
 extern crate conllx;
 
-use ambiguity_stats::{
-    get_all_files, get_deprel_bigrams, get_deprel_ngrams, get_graph_ngrams, get_ngrams, get_pmi,
-    get_tree_ngrams, ngrams_to_file, read_sentences, sort_pmi_file,
-};
+use ambiguity_stats::*;
 use clap::{App, Arg};
 
 /// The compute-mi program takes non-deduplicated lists of ngrams and calculates the PMIs for
@@ -63,105 +60,30 @@ pub fn main() {
     let input_file = matches.value_of("INPUT_DIRECTORY").unwrap();
 
     let focus_words = vec![
-        "isst".to_string(),
-        "isst".to_string(),
-        "trinkt".to_string(),
-        "trinkt".to_string(),
-        "weiß".to_string(),
-        "weiß".to_string(),
-        "isst".to_string(),
-        "isst".to_string(),
-        "trinkt".to_string(),
-        "trinkt".to_string(),
-        "weiß".to_string(),
-        "weiß".to_string(),
-        "führte".to_string(),
-        "führte".to_string(),
-        "erstatteten".to_string(),
-        "erstatteten".to_string(),
-        "erstatteten".to_string(),
-        "erstatteten".to_string(),
-        "wollte".to_string(),
-        "wollte".to_string(),
-        "wollte".to_string(),
-        "wollte".to_string(),
-        "tragen".to_string(),
-        "tragen".to_string(),
-        "tragen".to_string(),
-        "tragen".to_string(),
+        "vereinigt".to_string(),
+        "Sansibar".to_string(),
     ];
 
     let context_words = vec![
-        "sie".to_string(),
-        "sie".to_string(),
-        "Mann".to_string(),
-        "Mann".to_string(),
-        "Computer".to_string(),
-        "Computer".to_string(),
-        "Spaghetti".to_string(),
-        "Spaghetti".to_string(),
-        "Milch".to_string(),
-        "Milch".to_string(),
-        "alles".to_string(),
-        "alles".to_string(),
-        "Gespräche".to_string(),
-        "Gespräche".to_string(),
-        "Angeklagten".to_string(),
-        "Angeklagten".to_string(),
-        "Strafanzeige".to_string(),
-        "Strafanzeige".to_string(),
-        "niemand".to_string(),
-        "niemand".to_string(),
-        "Krempel".to_string(),
-        "Krempel".to_string(),
-        "Studierenden".to_string(),
-        "Studierenden".to_string(),
-        "Risiko".to_string(),
-        "Risiko".to_string(),
+        "mit".to_string(),
+        "mit".to_string(),
     ];
 
     let deprels = vec![
-        "SUBJ".to_string(),
-        "OBJA".to_string(),
-        "SUBJ".to_string(),
-        "OBJA".to_string(),
-        "SUBJ".to_string(),
-        "OBJA".to_string(),
-        "SUBJ".to_string(),
-        "OBJA".to_string(),
-        "SUBJ".to_string(),
-        "OBJA".to_string(),
-        "SUBJ".to_string(),
-        "OBJA".to_string(),
-        "SUBJ".to_string(),
-        "OBJA".to_string(),
-        "SUBJ".to_string(),
-        "OBJA".to_string(),
-        "SUBJ".to_string(),
-        "OBJA".to_string(),
-        "SUBJ".to_string(),
-        "OBJA".to_string(),
-        "SUBJ".to_string(),
-        "OBJA".to_string(),
-        "SUBJ".to_string(),
-        "OBJA".to_string(),
-        "SUBJ".to_string(),
-        "OBJA".to_string(),
+        "OBJP".to_string(),
+        "OBJP".to_string(),
     ];
 
     get_pmi(&focus_words, &context_words, &deprels, input_file);
 }
 
-#[allow(dead_code)]
-fn collect_ngram_trees(files: Vec<String>, ngram_size: usize) {
-    for file in &files {
-        get_graph_ngrams(&read_sentences(file), ngram_size, "SUBJ", "OBJA");
-    }
-}
-
 fn collect_ngrams(files: Vec<String>, filename_template: &str, ngram_size: usize) {
     for file in &files {
-        ngrams_to_file(filename_template, get_deprel_bigrams(&read_sentences(file))).unwrap();
+        ngrams_to_file(
+            filename_template,
+            readers::get_deprel_bigrams(&read_sentences(file)),
+        )
+        .unwrap();
         println!("Done with file {}", file)
     }
 }

@@ -29,12 +29,12 @@ pub fn main() {
     let (golddata, parserdata) = read_gng_data(golddatafile, parserdatafile);
 
     let (las, uas) = las_uas(&parserdata, &golddata);
-    println!("LAS {:?} and UAS {:?}", las, uas);
+    //println!("LAS {:?} and UAS {:?}", las, uas);
 
-    /*
-    let per_sent_las = per_sent_las(&parserdata, &golddata);
+
+    let per_sent_las = per_sent_uas(&parserdata, &golddata);
     for las in per_sent_las {
         println!("{}", las);
     }
-    */
+
 }

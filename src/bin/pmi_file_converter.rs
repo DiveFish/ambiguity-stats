@@ -34,8 +34,8 @@ pub fn main() {
 
     let input_dir1 = matches.value_of("INPUT_DIR").unwrap();
     let input_dir2 = matches.value_of("INPUT_DIR_2").unwrap();
-    eprintln!(">> Remember to \n- REMOVE old single-pmi files (content will be appended)\n- Change BOTH ends_with(pnsc/nsc) in compute_mi_to_dpar_pmis method accordingly \n<<");
-    bigram_pmi_to_dpar_pmis(Path::new(input_dir1), input_dir2, "psc");
+    eprintln!(">> Remember to REMOVE old single-pmi files (content will be appended)<<");
+    bigram_UD_pmi_to_dpar_pmis(Path::new(input_dir1), input_dir2, "nsc");
 
     /*
     let output_filename = matches.value_of("OUTPUT_FILE").unwrap();

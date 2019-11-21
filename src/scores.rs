@@ -2,6 +2,18 @@ extern crate conllx;
 
 use conllx::Token;
 
+pub fn precision(true_pos: f32, false_pos: f32) -> f32 {
+    true_pos / (true_pos + false_pos)
+}
+
+pub fn recall(true_pos: f32, false_neg: f32) -> f32 {
+    true_pos / (true_pos + false_neg)
+}
+
+pub fn f1_score(precision: f32, recall: f32) -> f32 {
+    2.0 * ( (precision * recall) / (precision + recall))
+}
+
 pub fn las(output: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> f32 {
     let mut head_label_errors = 0.0;
     let mut n_attachments = 0.0;
@@ -122,4 +134,33 @@ pub fn per_sent_uas(output: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> Vec<f32
     }
 
     sent_uas
+}
+
+/// Get labeled attachment score (LAS) components.
+pub fn get_las_parts(gold_sent: &[Token], parser_sent: &[Token]) -> (usize, usize, usize, usize) {
+    let mut attachments = 0;
+    let mut combined_errors = 0;
+    let mut head_errors = 0;
+    let mut label_errors = 0;
+
+    for i in 0..gold_sent.len() {
+        let gold_token = &gold_sent[i];
+        let gold_headidx = gold_token.head().expect("No head");
+        let gold_deprel = gold_token.head_rel().expect("No deprel");
+
+        let parser_token = &parser_sent[i];
+        let parser_headidx = parser_token.head().expect("No head idx");
+        let parser_deprel = parser_token.head_rel().expect("No deprel");
+
+        attachments += 1;
+        if gold_headidx != parser_headidx && gold_deprel != parser_deprel {
+            combined_errors += 1;
+        } else if gold_headidx != parser_headidx {
+            head_errors += 1;
+        } else if gold_deprel != parser_deprel {
+            label_errors += 1;
+        }
+    }
+
+    (attachments, combined_errors, head_errors, label_errors)
 }
