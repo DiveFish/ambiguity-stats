@@ -633,6 +633,57 @@ pub fn subj_obj_highly_ambigs(
     }
 }
 
+pub fn inversion_verbs(
+    verbs_freqs: &mut HashMap<String,usize>,
+    gold_sent: &[Token],
+    print_sents: bool,
+) {
+    let mut head_verb_args = HashMap::new();
+
+    for i in 0..gold_sent.len() {
+        let gold_token = &gold_sent[i];
+        let gold_deprel = gold_token.head_rel().expect("No deprel");
+        let gold_head = gold_token.head().expect("No head");
+
+        if gold_deprel == "SUBJ" || gold_deprel.starts_with("OBJ") {
+            let verb_idx = gold_head;
+
+            if gold_deprel == "SUBJ" {
+                let entry = head_verb_args.entry(verb_idx).or_insert(vec![0; 4]);
+                entry[0] = i;
+            } else if gold_deprel.starts_with("OBJ") {
+                let entry = head_verb_args.entry(verb_idx).or_insert(vec![0; 4]);
+                entry[1] = i;
+            }
+        }
+    }
+
+    for (verb, args) in head_verb_args.iter() {
+        let gold_subjidx = args[0];
+        let gold_objidx = args[1];
+
+        // Clause has subject and object which are inverted
+        if gold_subjidx > 0 && gold_objidx > 0 { //&& gold_subjidx > gold_objidx {
+
+            let mut verb = gold_sent[*verb-1].lemma();
+            if verb.is_some() {
+                let freq = verbs_freqs.entry(verb.unwrap().to_string()).or_insert(0);
+                *freq += 1;
+                if print_sents && gold_sent.len() < 11 {
+                    println!();
+                    for token in gold_sent {
+                        print!("{} ", token.form());
+                    }
+                    println!(
+                        "\nSUBJ idx {}, OBJ idx {}",
+                        gold_subjidx, gold_objidx
+                    );
+                }
+            }
+        }
+    }
+}
+
 /// Count long-distance errors
 pub fn distance_errs(
     overall_dist: &mut usize,

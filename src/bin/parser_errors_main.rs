@@ -36,7 +36,7 @@ pub fn errors(golddata: &[Vec<Token>], parserdata: &[Vec<Token>]) {
     //Check if &[[Token]] works
 
     // Dependency labels
-    let labels = [
+    let labels_hdt = [
         "-PUNCT-",
         "-UNKNOWN-",
         "ADV",
@@ -72,11 +72,48 @@ pub fn errors(golddata: &[Vec<Token>], parserdata: &[Vec<Token>]) {
         "SUBJ",
         "SUBJC",
         "ZEIT",
-        "-PUNCT-",
-        "-UNKNOWN-",
-        "_",
-        "ROOT",
-        "gmod-app"
+        "_"
+
+    ];
+    let labels = [
+        "acl",
+        "acl:relcl",
+        "advcl",
+        "advmod",
+        "advmod:neg",
+        "amod",
+        "appos",
+        "aux",
+        "aux:pass",
+        "case",
+        "cc",
+        "ccomp",
+        "compound:prt",
+        "conj",
+        "cop",
+        "csubj",
+        "csubj:pass",
+        "dep",
+        "det",
+        "det:neg",
+        "discourse",
+        "expl",
+        "fixed",
+        "flat",
+        "flat:foreign",
+        "iobj",
+        "mark",
+        "nmod",
+        "nmod:poss",
+        "nsubj",
+        "nsubj:pass",
+        "nummod",
+        "obj",
+        "obl",
+        "parataxis",
+        "punct",
+        "root",
+        "xcomp"
 
     ];
 

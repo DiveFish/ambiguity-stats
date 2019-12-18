@@ -141,6 +141,7 @@ pub fn pp_head_same_label_ambigs(
 /// Prepositional phrase attachment with (in)correct labels, assuming that
 /// the head of the phrase has been attached correctly. Otherwise,
 /// labels cannot be expected to be identical to the gold parse.
+//TODO: Check if "case" relation should be included as a condition for PPs
 pub fn pp_label_same_head_ambigs(
     overall_pps: &mut usize,
     errors: &mut usize,

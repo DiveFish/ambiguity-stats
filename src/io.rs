@@ -1,6 +1,6 @@
 extern crate conllx;
 
-use conllx::{ReadSentence, Reader, Token};
+use conllx::{ReadSentence, Reader, Token, Sentence};
 use flate2::read::GzDecoder;
 use std::collections::HashMap;
 use std::fs::OpenOptions;
@@ -19,12 +19,12 @@ pub fn read_gng_data(
 }
 
 /// Read single file
-pub fn read_data(datafile: &str) -> Vec<Vec<Token>> {
+pub fn read_data(datafile: &str) -> Vec<Sentence> {
     read_sentences(datafile)
 }
 
 // Taken from conllx-rs repo, tests.rs file
-pub fn read_sentences(filename: &str) -> Vec<Vec<Token>> {
+pub fn read_sentences(filename: &str) -> Vec<Sentence> {
     if filename.ends_with(".conll.gz") {
         let reader = File::open(filename).expect("Couldn't open file");
         let boxed_reader = BufReader::new(GzDecoder::new(reader).expect("Couldn't unzip .gz file"));

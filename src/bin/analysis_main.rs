@@ -62,7 +62,6 @@ pub fn main() {
     }
     println!("Ambiguity count: {},\terrors {}", occurrences_total, errors_total);
 
-    */
 
     //Get number of errors, number of verbal, nominal and other heads per preposition
     let mut preps: HashMap<String, Vec<usize>> = HashMap::new();
@@ -76,6 +75,19 @@ pub fn main() {
         println!("{}; {}; {}; {}; {}; {}", key, value[0], value[1], value[2], value[3], value[4]);
     }
 
+    */
+
+    // Get verbs involved in inversion along with the event frequency
+    let mut inv_verbs: HashMap<String, usize> = HashMap::new();
+    for i in 0..golddata.len() {
+        inversion_verbs(&mut inv_verbs, &golddata[i], false);
+    }
+
+    for (key, val) in inv_verbs.iter() {
+        if val > &1 {
+            //println!("{} {}", key, val);
+        }
+    }
 }
 
 /*
