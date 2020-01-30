@@ -315,7 +315,7 @@ pub fn pp_ud_acc_comps(
 
         let parser_headidx = parser_token.head().expect("No head idx");
 
-        if parser_deprel == "case" && parser_pos.starts_with("ADP-AP") {
+        if parser_deprel == "case" && parser_pos.starts_with("ADP") {
 
             if parser_headidx > 0 {
 
@@ -338,7 +338,7 @@ pub fn pp_ud_acc_comps(
                     }
                 }
             }
-        } else if gold_deprel == "case" && gold_pos.starts_with("ADP-AP") {
+        } else if gold_deprel == "case" && gold_pos.starts_with("ADP") {
 
             if gold_headidx > 0 {
                 let gold_head_deprel = &gold_sent[gold_headidx - 1].head_rel().expect("No deprel").to_string();

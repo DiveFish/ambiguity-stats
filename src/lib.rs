@@ -6,6 +6,10 @@ extern crate petgraph;
 #[macro_use]
 extern crate lazy_static;
 
+extern crate linked_hash_map;
+
+extern crate xml;
+
 mod ambiguities;
 pub use ambiguities::*;
 
@@ -18,11 +22,17 @@ pub use comp::*;
 mod error_analysis;
 pub use error_analysis::*;
 
+mod germanet;
+pub use germanet::*;
+
 mod io;
 pub use io::*;
 
 mod graph;
 pub use graph::*;
+
+mod verb;
+pub use verb::*;
 
 pub mod readers;
 
@@ -33,10 +43,13 @@ mod reader;
 pub use reader::*;
 
 mod pps;
-pub use pps::get_topofields;
+pub use pps::*;
 
 mod scores;
 pub use scores::*;
 
 mod tp_fp_fn;
 pub use tp_fp_fn::*;
+
+mod syntax;
+pub use syntax::*;

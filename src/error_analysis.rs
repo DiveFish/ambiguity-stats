@@ -4,6 +4,8 @@ use conllx::Token;
 
 use std::collections::{HashMap, HashSet};
 
+/// Compare which PP errors are particular to specific models and which
+/// errors are made by two or all models.
 pub fn comp_pp_err_sents(
     input_dep: &Vec<Vec<Token>>,
     input_pmi: &Vec<Vec<Token>>,
@@ -45,6 +47,8 @@ pub fn comp_pp_err_sents(
     return (errs_shared, dep_errs, pmi_errs);
 }
 
+/// Compare which inverison errors are particular to specific models and which
+/// errors are made by two or all models.
 pub fn comp_inv_err_sents(
     input_dep: &Vec<Vec<Token>>,
     input_pmi: &Vec<Vec<Token>>,
@@ -87,6 +91,8 @@ pub fn comp_inv_err_sents(
     return (errs_shared, dep_errs, pmi_errs);
 }
 
+/// Indicate at which subject and object token index an error has occurred.
+/// Results provided to 'comp_inv_err_sents' method.
 pub fn inversion_errs(
     parser_sent: &[Token],
     gold_sent: &[Token],
@@ -151,6 +157,7 @@ pub fn inversion_errs(
     subj_obj_idxs.clone()
 }
 
+/// Format sentence with token at index 'tok_idx' highlighted.
 fn add_err_sentence(input_sent: &Vec<Token>, tok_idx: usize, err_sents: &mut Vec<Vec<String>>) {
     let mut sent = Vec::with_capacity(input_sent.len());
     for idx in 0..input_sent.len() {
@@ -170,6 +177,7 @@ fn add_err_sentence(input_sent: &Vec<Token>, tok_idx: usize, err_sents: &mut Vec
     err_sents.push(sent);
 }
 
+/// Format sentence with tokens at indices 'tok_idx' and 'tok_idx2' highlighted.
 fn add_err_sentence_tok2(
     input_sent: &Vec<Token>,
     tok_idx: usize,

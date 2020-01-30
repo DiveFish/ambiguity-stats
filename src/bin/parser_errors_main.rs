@@ -1,10 +1,12 @@
 extern crate ambiguity_stats;
 extern crate clap;
 extern crate conllx;
+extern crate linked_hash_map;
 
 use ambiguity_stats::*;
 use clap::{App, Arg};
 use conllx::Token;
+use linked_hash_map::LinkedHashMap;
 use std::collections::HashMap;
 
 pub fn main() {
@@ -28,15 +30,43 @@ pub fn main() {
 
     let golddatafile = matches.value_of("INPUT_GOLD").unwrap();
     let parserdatafile = matches.value_of("INPUT_NONGOLD").unwrap();
-    let (golddata, parserdata) = read_gng_data(golddatafile, parserdatafile);
-    errors(&golddata, &parserdata);
+    //read_gng_data(golddatafile, parserdatafile);
+
+    let mut pos_patterns = LinkedHashMap::new();
+    let mut examples = Vec::new();
+
+    let files = get_all_files(golddatafile);
+    for file in files {
+        let golddata = read_data(&file);
+        for gold_sent in golddata.iter() {
+            if gold_sent.len() < 20 {
+                label_combos(gold_sent, &mut pos_patterns, &mut examples);
+            }
+        }
+        eprintln!("Done with file {}", file);
+    }
+
+    assert_eq!(pos_patterns.len(), examples.len());
+    for ((pattern, freq), example) in pos_patterns.iter().zip(examples.iter()) {
+        for pos in pattern {
+            print!("{} ", pos);
+        }
+        print!("\t{}\t", freq);
+        for tok in example {
+            if ! (tok == "\"") {
+                print!("{} ", tok);
+            }
+        }
+        println!();
+    }
+
 }
 
 pub fn errors(golddata: &[Vec<Token>], parserdata: &[Vec<Token>]) {
     //Check if &[[Token]] works
 
     // Dependency labels
-    let labels_hdt = [
+    let labels = [
         "-PUNCT-",
         "-UNKNOWN-",
         "ADV",
@@ -72,48 +102,11 @@ pub fn errors(golddata: &[Vec<Token>], parserdata: &[Vec<Token>]) {
         "SUBJ",
         "SUBJC",
         "ZEIT",
-        "_"
-
-    ];
-    let labels = [
-        "acl",
-        "acl:relcl",
-        "advcl",
-        "advmod",
-        "advmod:neg",
-        "amod",
-        "appos",
-        "aux",
-        "aux:pass",
-        "case",
-        "cc",
-        "ccomp",
-        "compound:prt",
-        "conj",
-        "cop",
-        "csubj",
-        "csubj:pass",
-        "dep",
-        "det",
-        "det:neg",
-        "discourse",
-        "expl",
-        "fixed",
-        "flat",
-        "flat:foreign",
-        "iobj",
-        "mark",
-        "nmod",
-        "nmod:poss",
-        "nsubj",
-        "nsubj:pass",
-        "nummod",
-        "obj",
-        "obl",
-        "parataxis",
-        "punct",
-        "root",
-        "xcomp"
+        "-PUNCT-",
+        "-UNKNOWN-",
+        "_",
+        "ROOT",
+        "gmod-app"
 
     ];
 

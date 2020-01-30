@@ -18,7 +18,7 @@ use std::collections::HashMap;
 /// Since two relations are involved, PP attachment is more
 /// error-prone in UD than it is in HDT where only one relation
 /// is involved.
-pub fn pp_ambigs(
+pub fn pp_ambigs_ud(
     overall_pps: &mut usize,
     errors: &mut usize,
     gold_sent: &[Token],
@@ -85,11 +85,97 @@ pub fn pp_ambigs(
     }
 }
 
+/// Calculate error rate from PPs in gold data which were incorrectly labeled
+/// and from PPs in non-gold data which are not PPs in gold data.
+pub fn pp_gng_ambigs_ud(
+    overall_pps: &mut usize,
+    errors: &mut usize,
+    gold_sent: &[Token],
+    parser_sent: &[Token],
+    print_sents: bool,
+) {
+    for i in 0..gold_sent.len() {
+        let gold_token = &gold_sent[i];
+        let gold_deprel = gold_token.head_rel().expect("No deprel");
+        let gold_pos =  gold_token.pos().expect("No deprel");
+        let gold_headidx = gold_token.head().expect("No head");
+
+        let parser_token = &parser_sent[i];
+        let parser_deprel = parser_token.head_rel().expect("No deprel");
+        let parser_pos =  parser_token.pos().expect("No deprel");
+        let parser_headidx = parser_token.head().expect("No head idx");
+
+        if gold_deprel == "case" && gold_pos.starts_with("ADP") && gold_headidx > 0 {
+
+            let gold_head_deprel = &gold_sent[gold_headidx - 1].head_rel().expect("No deprel");
+            let gold_head_headidx = &gold_sent[gold_headidx - 1].head().expect("No head");
+
+            if gold_head_deprel == &"obl" || gold_head_deprel == &"nmod" || gold_head_deprel == &"root" {
+                *overall_pps += 1;
+
+                if gold_headidx != parser_headidx || gold_deprel != parser_deprel {
+                    *errors += 1;
+
+                    if print_sents && gold_sent.len() < 11 {
+                        println!();
+                        for token in gold_sent {
+                            print!("{} ", token.form());
+                        }
+                        /*
+                        if gold_headidx != parser_headidx {
+                            println!(
+                                "\n{} idx (GOLD), {} idx (PARSER)",
+                                gold_headidx, parser_headidx
+                            );
+                        }
+                        if gold_deprel != parser_deprel {
+                            println!(
+                                "\n{} (GOLD), {} (PARSER) at idx {}",
+                                gold_deprel, parser_deprel, i
+                            );
+                        }
+                        */
+                    }
+                }
+            }
+        } else if parser_deprel == "case" && parser_pos.starts_with("ADP") && parser_headidx > 0 {
+            let parser_head_deprel = &parser_sent[parser_headidx - 1].head_rel().expect("No deprel");
+            let parser_head_headidx = &parser_sent[parser_headidx - 1].head().expect("No head");
+
+            if parser_head_deprel == &"obl" || parser_head_deprel == &"nmod" || parser_head_deprel == &"root" {
+                *overall_pps += 1;
+                *errors += 1;
+
+                if print_sents && parser_sent.len() < 11 {
+                    println!();
+                    for token in parser_sent {
+                        print!("{} ", token.form());
+                    }
+                    /*
+                   if gold_headidx != parser_headidx {
+                        println!(
+                            "\n{} idx (GOLD), {} idx (PARSER)",
+                            gold_headidx, parser_headidx
+                        );
+                    }
+                    if gold_deprel != parser_deprel {
+                        println!(
+                            "\n{} (GOLD), {} (PARSER) at idx {}",
+                            gold_deprel, parser_deprel, i
+                        );
+                    }
+                    */
+                }
+            }
+        }
+    }
+}
+
 /// Prepositional phrase attachment with (in)correct heads, assuming
 /// that the label of the phrase is identical to the gold parse.
 /// Since the head of the prepositional phrases attaches to the noun
 /// and not the preposition, this is the head that is checked here.
-pub fn pp_head_same_label_ambigs(
+pub fn pp_head_same_label_ambigs_ud(
     overall_pps: &mut usize,
     errors: &mut usize,
     gold_sent: &[Token],
@@ -141,8 +227,7 @@ pub fn pp_head_same_label_ambigs(
 /// Prepositional phrase attachment with (in)correct labels, assuming that
 /// the head of the phrase has been attached correctly. Otherwise,
 /// labels cannot be expected to be identical to the gold parse.
-//TODO: Check if "case" relation should be included as a condition for PPs
-pub fn pp_label_same_head_ambigs(
+pub fn pp_label_same_head_ambigs_ud(
     overall_pps: &mut usize,
     errors: &mut usize,
     gold_sent: &[Token],
@@ -204,7 +289,7 @@ pub fn pp_label_same_head_ambigs(
 /// Note that, in UD, objects are split into two classes
 /// - Core arguments: obj and iobj ~ OBJA and OBJD (HDT)
 /// - Non-core arguments: obl ~ all other arguments (HDT)
-pub fn subj_obj_ambigs(
+pub fn subj_obj_ambigs_ud(
     overall_subjobjs: &mut usize,
     errors: &mut usize,
     gold_sent: &[Token],
@@ -280,7 +365,7 @@ pub fn subj_obj_ambigs(
 /// The difference between subject-object confusions and
 /// inversions is that inversion considers only subject-object
 /// combinations where the object precedes the subject.
-pub fn inversion_ambigs(
+pub fn inversion_ambigs_ud(
     overall_subjobjs: &mut usize,
     errors: &mut usize,
     gold_sent: &[Token],
@@ -338,6 +423,7 @@ pub fn inversion_ambigs(
                     for token in gold_sent {
                         print!("{} ", token.form());
                     }
+                    /*
                     println!(
                         "\nnsubj idx {}, obj/iobj/obl idx {} (GOLD)",
                         gold_subjidx, gold_objidx
@@ -346,6 +432,7 @@ pub fn inversion_ambigs(
                         "nsubj idx {}, obj/iobj/obl idx {} (PARSER)",
                         parser_subjidx, parser_objidx
                     );
+                    */
                 }
             }
         }

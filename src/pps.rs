@@ -1,7 +1,7 @@
 extern crate conllx;
 
 use conllx::Token;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap,HashMap};
 
 /// Filter prepositional phrases by the topological field in which they occur.
 pub fn get_topofields(text: &[Vec<Token>]) {
@@ -243,5 +243,26 @@ pub fn get_topofields(text: &[Vec<Token>]) {
             }
         }
         println!();
+    }
+}
+
+/// Count frequencies of preposition and error per preposition.
+pub fn err_by_prep(gold_sent: &[Token], parser_sent: &[Token], prep_errs: &mut HashMap<String, (usize, usize)>) {
+    for i in 0..gold_sent.len() {
+        let gold_token = &gold_sent[i];
+        let gold_deprel = gold_token.head_rel().expect("No deprel");
+        let gold_head = gold_token.head().expect("No head");
+
+        if gold_deprel == "PP" || gold_deprel == "OBJP" {
+            let parser_token = &parser_sent[i];
+            let parser_deprel = parser_token.head_rel().expect("No deprel");
+            let parser_head = parser_token.head().expect("No head");
+
+            let (pp_freq, pp_err_freq) = prep_errs.entry(gold_token.form().to_string().to_lowercase()).or_insert((0,0));
+            *pp_freq += 1;
+            if parser_deprel != gold_deprel || parser_head != gold_head {
+                *pp_err_freq += 1;
+            }
+        }
     }
 }

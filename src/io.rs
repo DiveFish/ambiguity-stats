@@ -1,7 +1,10 @@
 extern crate conllx;
+extern crate xml;
 
-use conllx::{ReadSentence, Reader, Token, Sentence};
+use conllx::{ReadSentence, Reader, Token};
 use flate2::read::GzDecoder;
+use xml::reader::{EventReader, XmlEvent};
+
 use std::collections::HashMap;
 use std::fs::OpenOptions;
 use std::fs::{self, File};
@@ -19,12 +22,12 @@ pub fn read_gng_data(
 }
 
 /// Read single file
-pub fn read_data(datafile: &str) -> Vec<Sentence> {
+pub fn read_data(datafile: &str) -> Vec<Vec<Token>> {
     read_sentences(datafile)
 }
 
 // Taken from conllx-rs repo, tests.rs file
-pub fn read_sentences(filename: &str) -> Vec<Sentence> {
+pub fn read_sentences(filename: &str) -> Vec<Vec<Token>> {
     if filename.ends_with(".conll.gz") {
         let reader = File::open(filename).expect("Couldn't open file");
         let boxed_reader = BufReader::new(GzDecoder::new(reader).expect("Couldn't unzip .gz file"));
@@ -32,7 +35,7 @@ pub fn read_sentences(filename: &str) -> Vec<Sentence> {
             .sentences()
             .map(|s| s.unwrap())
             .collect()
-    } else if filename.ends_with(".conll") {
+    } else if filename.ends_with(".conll") || filename.ends_with(".tsv") {
         let reader = File::open(filename).expect("Couldn't open file");
         Reader::new(BufReader::new(reader))
             .sentences()
@@ -61,14 +64,32 @@ fn get_files(dir: &Path, files: &mut Vec<String>) {
                 get_files(&path, files);
             } else {
                 let filename = path.to_str().unwrap().clone().to_string();
-                if filename.ends_with("conll") || filename.ends_with("conll.gz") {
+                files.push(filename);
+            }
+        }
+    } else if dir.is_file() {
+        let filename = dir.to_str().unwrap().clone().to_string();
+        files.push(filename);
+    }
+}
+
+/// Get all files from a directory, also recursively if necessary.
+fn get_treebank_files(dir: &Path, files: &mut Vec<String>) {
+    if dir.is_dir() {
+        for entry in fs::read_dir(dir).unwrap() {
+            let path = entry.unwrap().path();
+            if path.is_dir() {
+                get_files(&path, files);
+            } else {
+                let filename = path.to_str().unwrap().clone().to_string();
+                if filename.ends_with("conll") || filename.ends_with("tsv") || filename.ends_with("conll.gz") {
                     files.push(filename);
                 }
             }
         }
     } else if dir.is_file() {
         let filename = dir.to_str().unwrap().clone().to_string();
-        if filename.ends_with("conll") || filename.ends_with("conll.gz") {
+        if filename.ends_with("conll") || filename.ends_with("tsv") || filename.ends_with("conll.gz") {
             files.push(filename);
         }
     }
@@ -377,4 +398,58 @@ pub fn combine_tri_bigram_files(
         }
     }
     Ok(association_strengths)
+}
+
+/// Collect xml events of a specific event type.
+/// Example usage: read_xml(xml_file, "orthForm");
+pub fn read_xml(filename: &str, word_event: &str, frame_event: &str) {
+    let file = File::open(filename).expect("Could not open file");
+    let reader = BufReader::new(file);
+
+    let xml_parser = EventReader::new(reader);
+    let mut depth = 0;
+    let mut in_word = false;
+    let mut in_frame = false;
+    for e in xml_parser {
+        match e {
+            Ok(XmlEvent::StartElement { ref name, .. }) => {
+                if name.local_name == word_event {
+                    in_word = true;
+                } else if name.local_name == frame_event {
+                    in_frame = true;
+                }
+                depth += 1;
+            }
+            Ok(XmlEvent::Characters { .. } ) => {
+                if in_word || in_frame {
+                    match e {
+                        Ok(XmlEvent::Characters(s)) => {
+                            if in_frame {
+                                print!("{},", s);
+                            } else {
+                                print!("\n{}:", s);
+                            }
+                        },
+                        _ => {
+                            println!("UNKN");
+                        }
+                    }
+                }
+            }
+            Ok(XmlEvent::EndElement { name }) => {
+                depth -= 1;
+                if in_word {
+                    in_word = false;
+                } else if in_frame {
+                    in_frame = false;
+                }
+                //println!("{}-{}", indent(depth), name);
+            }
+            Err(e) => {
+                println!("Error: {}", e);
+                break;
+            }
+            _ => {}
+        }
+    }
 }
