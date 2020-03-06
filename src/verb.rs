@@ -1,12 +1,18 @@
 extern crate conllx;
+extern crate flate2;
 
 use std::collections::HashMap;
 
 use conllx::Token;
-use std::fs::{self, File};
-use std::io::{self, BufRead, BufReader};
+use flate2::Compression;
+use flate2::write::GzEncoder;
 
-pub fn svo_triples(sent: &[Token], lemma: bool) {
+use std::fmt::{self, Formatter, Display};
+use std::fs::{self, File};
+use std::io::{self, Write};
+use std::path::Path;
+
+pub fn svo_triples(sent: &[Token], lemma: bool, object_rel: &str) {
     let mut head_verb_args = HashMap::new();
     let mut aux_content_verbs = HashMap::new();
 
@@ -34,7 +40,7 @@ pub fn svo_triples(sent: &[Token], lemma: bool) {
         let deprel = gold_token.head_rel().expect("No deprel");
         let head = gold_token.head().expect("No head");
 
-        if (deprel == "SUBJ" || deprel == "OBJA" || deprel == "OBJD") && head > 0 {
+        if (deprel == "SUBJ" || deprel == object_rel) && head > 0 {
             let mut verb_idx = head - 1;
             if let Some(content_verb_idx) = aux_content_verbs.get(&verb_idx) {
                 verb_idx = *content_verb_idx;
@@ -42,7 +48,7 @@ pub fn svo_triples(sent: &[Token], lemma: bool) {
             if deprel == "SUBJ" {
                 let entry = head_verb_args.entry(verb_idx).or_insert(vec![0; 5]);
                 entry[0] = i;
-            } else if deprel == "OBJA" || deprel == "OBJD" {
+            } else if deprel == object_rel {
                 let entry = head_verb_args.entry(verb_idx).or_insert(vec![0; 5]);
 
                 if entry[1] == 0 {
@@ -83,26 +89,153 @@ pub fn svo_triples(sent: &[Token], lemma: bool) {
                 if obj_idx == 0 {
                     break;
                 } else {
+                    let order = if subj_idx < *verb_idx && *verb_idx < obj_idx {
+                        "SVO"
+                    } else if subj_idx < obj_idx && obj_idx < *verb_idx {
+                        "SOV"
+                    } else if *verb_idx < subj_idx && subj_idx < obj_idx {
+                        "VSO"
+                    } else if *verb_idx < obj_idx && obj_idx < subj_idx {
+                        "VOS"
+                    } else if obj_idx < subj_idx && subj_idx < *verb_idx {
+                        "OSV"
+                    } else if obj_idx < *verb_idx && *verb_idx < subj_idx {
+                        "OVS"
+                    } else {
+                        "UNK"
+                    };
                     let obj = sent[obj_idx].clone();
                     let obj_form = obj.form().clone();
                     if lemma {
-
-                        if let Some(subj_lemma) = subj.lemma() {
-                            print!("{} ", subj_lemma);
-                        }
-                        if let Some(verb_lemma) = verb.lemma() {
-                            print!("{} ", verb_lemma.replace("\"", "").replace("#", "").split("%").collect::<Vec<&str>>()[0]);
-                        }
-                        if let Some(obj_lemma) = obj.lemma() {
-                            print!("{}\n", obj_lemma);
+                        if let Some(obj_lemma) = obj.lemma()  {
+                            if ! (obj_lemma.starts_with("#refl") || obj_lemma == "mich" || obj_lemma == "dich" || obj_lemma == "sich" || obj_lemma == "uns" || obj_lemma == "euch") {
+                                if let Some(subj_lemma) = subj.lemma() {
+                                    print!("{}\t", subj_lemma);
+                                }
+                                if let Some(verb_lemma) = verb.lemma() {
+                                    print!("{}\t", verb_lemma.replace("\"", "").replace("#", "").split("%").collect::<Vec<&str>>()[0]);
+                                }
+                                print!("{}\t{}\n", obj_lemma, order);
+                            }
                         }
                     } else {
-                        println!("{} {} {}", subj_form, verb_form.to_lowercase(), obj_form);
+                        if let Some(obj_lemma) = obj.lemma() {
+                            if !(obj_lemma.starts_with("#refl") || obj_lemma == "sich") {
+                                println!("{}\t{}\t{}\t{}", subj_form.replace(" ", "_space_"), verb_form.to_lowercase().replace(" ", "_space_"), obj_form.replace(" ", "_space_"), order);
+                            }
+                        }
                     }
                 }
             }
         }
     }
+}
+
+pub fn ccrawl_triples(text: &Vec<Vec<Token>>, lemma: bool, output_filename: &str) {
+
+    let output_file = File::create(&output_filename).expect("Unable to create file");
+    let mut encoded_file = GzEncoder::new(output_file, Compression::default());
+
+    for sent in text.iter() {
+        let mut head_verb_args = HashMap::new();
+        let mut aux_content_verbs = HashMap::new();
+
+        for i in 0..sent.len() {
+            let token = &sent[i];
+            let deprel = token.head_rel().expect("No deprel");
+            let head = token.head().expect("No head");
+            if head > 0 && deprel == "AUX" {
+                // Reattach auxiliary verb to content verb
+                let mut aux_verb_idx = head - 1;
+                while aux_verb_idx > 0 && sent[aux_verb_idx].head_rel().expect("No deprel").eq("AUX") {
+                    if sent[aux_verb_idx].head().expect("No head") > 0 {
+                        aux_verb_idx = sent[aux_verb_idx].head().expect("No head") - 1;
+                    } else {
+                        break;
+                    }
+                }
+                aux_content_verbs.insert(aux_verb_idx, i);
+            }
+        }
+
+        for i in 1..sent.len() {
+            let gold_token = &sent[i];
+            let mut content_verb_idx = 0;
+
+            let deprel = gold_token.head_rel().expect("No deprel");
+            let head = gold_token.head().expect("No head");
+
+            if (deprel == "SUBJ" || deprel == "OBJA" || deprel == "OBJD") && head > 0 {
+                let mut verb_idx = head - 1;
+                if let Some(content_verb_idx) = aux_content_verbs.get(&verb_idx) {
+                    verb_idx = *content_verb_idx;
+                };
+                if deprel == "SUBJ" {
+                    let entry = head_verb_args.entry(verb_idx).or_insert(vec![0; 5]);
+                    entry[0] = i;
+                } else if deprel == "OBJA" || deprel == "OBJD" {
+                    let entry = head_verb_args.entry(verb_idx).or_insert(vec![0; 5]);
+
+                    if entry[1] == 0 {
+                        entry[1] = i;
+                    } else if entry[2] == 0 {
+                        entry[2] = i;
+                    } else if entry[3] == 0 {
+                        entry[3] = i;
+                    } else if entry[4] == 0 {
+                        entry[4] = i;
+                    }
+                }
+            }
+        }
+
+        for (verb_idx, verb_args) in head_verb_args.iter() {
+            let verb = sent[*verb_idx].clone();
+            let verb_form = verb.form().clone();
+
+            let subj_idx = verb_args[0];
+            let obj1_idx = verb_args[1];
+            let obj2_idx = verb_args[2];
+            let obj3_idx = verb_args[3];
+            let obj4_idx = verb_args[4];
+            let mut objects = Vec::with_capacity(4);
+            objects.push(obj1_idx);
+            objects.push(obj2_idx);
+            objects.push(obj3_idx);
+            objects.push(obj4_idx);
+
+            if subj_idx > 0 {
+                let subj = sent[subj_idx].clone();
+                let subj_form = subj.form().clone();
+
+                for obj_idx in objects {
+                    if obj_idx == 0 {
+                        break;
+                    } else {
+                        let obj = sent[obj_idx].clone();
+                        let obj_form = obj.form().clone();
+
+                        if lemma {
+                            if subj.lemma().is_some() && verb.lemma().is_some() && obj.lemma().is_some() {
+                                if subj_idx > obj_idx {
+                                    encoded_file.write_all(format!("{}\t{}\t{}\n", obj.lemma().expect("No object lemma"), verb.lemma().expect("No verb lemma").replace("\"", "").replace("#", "").split("%").collect::<Vec<&str>>()[0], subj.lemma().expect("No subject lemma")).as_bytes());
+                                } else {
+                                    encoded_file.write_all(format!("{}\t{}\t{}\n", subj.lemma().expect("No object lemma"), verb.lemma().expect("No verb lemma").replace("\"", "").replace("#", "").split("%").collect::<Vec<&str>>()[0], obj.lemma().expect("No subject lemma")).as_bytes());
+                                }
+                            }
+                        } else {
+                            if subj_idx > obj_idx {
+                                encoded_file.write_all(format!("{}\t{}\t{}\n", subj_form, verb_form.to_lowercase(), obj_form).as_bytes());
+                            } else {
+                                encoded_file.write_all(format!("{}\t{}\t{}\n", obj_form, verb_form.to_lowercase(), subj_form).as_bytes());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    encoded_file.finish();
 }
 
 pub fn inversion_verbs_content(gold_sent: &[Token]) -> (Vec<String>, Vec<String>) {
@@ -213,7 +346,6 @@ pub fn inversion_verbs_content(gold_sent: &[Token]) -> (Vec<String>, Vec<String>
             }
         }
     }
-
     (verbs, inversion_verbs)
 }
 
@@ -405,7 +537,6 @@ pub fn err_by_verb(gold_sent: &[Token], parser_sent: &[Token], inv_errs: &mut Ha
             }
         }
     }
-
 
     for (verb_idx, val) in head_verb_args.iter() {
         let gold_subjidx = val[0];

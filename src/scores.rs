@@ -96,6 +96,37 @@ pub fn las_uas_no_punct(output: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> (f3
     )
 }
 
+pub fn las_no_heads(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> f32 {
+    let mut n_attachments = 0.0;
+    let mut label_errors = 0.0;
+    for (parsed_sent, gold_sent) in parsed.iter().zip(gold.iter()) {
+        for (parsed_token, gold_token) in parsed_sent.iter().zip(gold_sent.iter()) {
+            n_attachments += 1.0;
+            if parsed_token.head_rel() != gold_token.head_rel() {
+                label_errors += 1.0;
+            }
+
+            let gold_token_rel = gold_token.head_rel().expect("No head rel");
+            let parsed_token_rel = parsed_token.head_rel().expect("No head rel");
+
+            print!("{} ", parsed_token);
+            if gold_token_rel == "nsubj" || gold_token_rel.ends_with("obj") {
+                if parsed_token.head_rel() == gold_token.head_rel() {
+                    print!("[ :) ] ");
+                } else if parsed_token_rel == "nsubj" && gold_token_rel.ends_with("obj"){
+                    print!("[ :( ] ");
+                } else if parsed_token_rel.ends_with("obj") && gold_token_rel == "nsubj"{
+                    print!("[ :( ] ");
+                } else {
+                    print!("[ {} ] ", parsed_token_rel);
+                }
+            }
+        }
+        println!();
+    }
+    1.0 - (label_errors / n_attachments)
+}
+
 pub fn per_sent_las(output: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> Vec<f32> {
     let mut sent_las = Vec::with_capacity(gold.len());
 

@@ -25,31 +25,31 @@ pub use error_analysis::*;
 mod germanet;
 pub use germanet::*;
 
-mod io;
-pub use io::*;
-
 mod graph;
 pub use graph::*;
 
-mod verb;
-pub use verb::*;
+mod io;
+pub use io::*;
 
 pub mod readers;
 
 mod pmi_map_utils;
 pub use pmi_map_utils::*;
 
-mod reader;
-pub use reader::*;
-
 mod pps;
 pub use pps::*;
+
+mod reader;
+pub use reader::*;
 
 mod scores;
 pub use scores::*;
 
+mod syntax;
+pub use syntax::*;
+
 mod tp_fp_fn;
 pub use tp_fp_fn::*;
 
-mod syntax;
-pub use syntax::*;
+mod verb;
+pub use verb::*;
