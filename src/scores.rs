@@ -104,28 +104,33 @@ pub fn las_no_heads_emoj(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> f3
         let mut obj = "";
 
         for (parsed_token, gold_token) in parsed_sent.iter().zip(gold_sent.iter()) {
-            n_attachments += 1.0;
-            if parsed_token.head_rel() != gold_token.head_rel() {
-                label_errors += 1.0;
-            }
 
-            let gold_token_rel = gold_token.head_rel().expect("No head rel");
-            let parsed_token_rel = parsed_token.head_rel().expect("No head rel");
+            print!("{} ", parsed_token.form());
 
-            print!("{} ", parsed_token);
-            if gold_token_rel == "nsubj" || gold_token_rel.ends_with("obj") {
-                if parsed_token.head_rel() == gold_token.head_rel() && gold_token_rel == "nsubj" {
-                    subj = ":)";
-                } else if parsed_token.head_rel() == gold_token.head_rel() && gold_token_rel.ends_with("obj") {
-                    obj = ":)";
-                } else if parsed_token_rel == "nsubj" && gold_token_rel.ends_with("obj"){
-                    subj = ":(";
-                } else if parsed_token_rel.ends_with("obj") && gold_token_rel == "nsubj"{
-                    obj = ":(";
-                } else if gold_token_rel == "nsubj" {
-                    subj = parsed_token_rel;
-                } else if gold_token_rel.ends_with("obj") {
-                    obj = parsed_token_rel;
+            if let Some(gold_token_rel) = gold_token.head_rel() {
+                let gold_token_rel = gold_token.head_rel().expect("No head rel");
+                let parsed_token_rel = parsed_token.head_rel().expect("No head rel");
+
+                if gold_token_rel == "nsubj" || gold_token_rel == "obj" {
+
+                    n_attachments += 1.0;
+                    if parsed_token.head_rel() != gold_token.head_rel() {
+                        label_errors += 1.0;
+                    }
+
+                    if parsed_token.head_rel() == gold_token.head_rel() && gold_token_rel == "nsubj" {
+                        subj = "1";
+                    } else if parsed_token.head_rel() == gold_token.head_rel() && gold_token_rel == "obj" {
+                        obj = "1";
+                    } else if parsed_token_rel == "nsubj" && gold_token_rel == "obj" {
+                        subj = "0";
+                    } else if parsed_token_rel == "obj" && gold_token_rel == "nsubj" {
+                        obj = "0";
+                    } else if gold_token_rel == "nsubj" {
+                        subj = parsed_token_rel;
+                    } else if gold_token_rel == "obj" || gold_token_rel == "iobj" {
+                        obj = parsed_token_rel;
+                    }
                 }
             }
         }
