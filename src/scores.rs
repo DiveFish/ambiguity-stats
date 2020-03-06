@@ -96,10 +96,13 @@ pub fn las_uas_no_punct(output: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> (f3
     )
 }
 
-pub fn las_no_heads(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> f32 {
+pub fn las_no_heads_emoj(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> f32 {
     let mut n_attachments = 0.0;
     let mut label_errors = 0.0;
     for (parsed_sent, gold_sent) in parsed.iter().zip(gold.iter()) {
+        let mut subj = "";
+        let mut obj = "";
+
         for (parsed_token, gold_token) in parsed_sent.iter().zip(gold_sent.iter()) {
             n_attachments += 1.0;
             if parsed_token.head_rel() != gold_token.head_rel() {
@@ -111,18 +114,22 @@ pub fn las_no_heads(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> f32 {
 
             print!("{} ", parsed_token);
             if gold_token_rel == "nsubj" || gold_token_rel.ends_with("obj") {
-                if parsed_token.head_rel() == gold_token.head_rel() {
-                    print!("[ :) ] ");
+                if parsed_token.head_rel() == gold_token.head_rel() && gold_token_rel == "nsubj" {
+                    subj = ":)";
+                } else if parsed_token.head_rel() == gold_token.head_rel() && gold_token_rel.ends_with("obj") {
+                    obj = ":)";
                 } else if parsed_token_rel == "nsubj" && gold_token_rel.ends_with("obj"){
-                    print!("[ :( ] ");
+                    subj = ":(";
                 } else if parsed_token_rel.ends_with("obj") && gold_token_rel == "nsubj"{
-                    print!("[ :( ] ");
-                } else {
-                    print!("[ {} ] ", parsed_token_rel);
+                    obj = ":(";
+                } else if gold_token_rel == "nsubj" {
+                    subj = parsed_token_rel;
+                } else if gold_token_rel.ends_with("obj") {
+                    obj = parsed_token_rel;
                 }
             }
         }
-        println!();
+        println!("\t{} {}", subj, obj);
     }
     1.0 - (label_errors / n_attachments)
 }

@@ -28,7 +28,7 @@ pub fn main() {
     let parserdatafile = matches.value_of("INPUT_NONGOLD").unwrap();
     let (golddata, parserdata) = read_gng_data(golddatafile, parserdatafile);
 
-    let las_no_heads = las_no_heads(&parserdata, &golddata);
+    let las_no_heads = las_no_heads_emoj(&parserdata, &golddata);
     // Attachment scores
     /*
     let (las, uas) = las_uas(&parserdata, &golddata);
