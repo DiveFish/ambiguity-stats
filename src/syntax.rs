@@ -37,77 +37,68 @@ pub fn label_combos(input: &[Token], pos_patterns: &mut LinkedHashMap<Vec<String
     }
 }
 
-pub fn sentence_generator(svo_triples: &Vec<Vec<String>>, templates: &Vec<Vec<String>>, templates_mod: &Vec<Vec<String>>) -> io::Result<()>  {
-    eprintln!("Saving to directory /home/patricia/Dokumente/Promotion/Daten/challenge-set/dataset/test/");
-    let mut f_svo = File::create("/home/patricia/Dokumente/Promotion/Daten/challenge-set/dataset/test/dataset_svo.conll")?;
-    let mut f_ovs = File::create("/home/patricia/Dokumente/Promotion/Daten/challenge-set/dataset/test/dataset_ovs.conll")?;
-    let mut f_dvso = File::create("/home/patricia/Dokumente/Promotion/Daten/challenge-set/dataset/test/dataset_dvso.conll")?;
-    let mut f_dvos = File::create("/home/patricia/Dokumente/Promotion/Daten/challenge-set/dataset/test/dataset_dvos.conll")?;
-    let mut f_wsov = File::create("/home/patricia/Dokumente/Promotion/Daten/challenge-set/dataset/test/dataset_wsov.conll")?;
-    let mut f_wosv = File::create("/home/patricia/Dokumente/Promotion/Daten/challenge-set/dataset/test/dataset_wosv.conll")?;
+pub fn sentence_generator(svo_triples: &Vec<Vec<String>>, properties: &Vec<String>, templates: &Vec<Vec<String>>, templates_mod: &Vec<Vec<String>>) -> io::Result<()>  {
+    eprintln!("Saving to directory /home/patricia/Dokumente/Promotion/Daten/parser-challenge-set/dataset/test/");
+    let mut file = File::create("/home/patricia/Dokumente/Promotion/Daten/parser-challenge-set/dataset/test/dataset.conll")?;
 
-    for svo_triple in svo_triples {
-        let mut dative = false;
-        if svo_triple[0] == "+d" || svo_triple[0] == "*d" || svo_triple[0] == "?d" {
-            dative = true;
-        };
+    for (svo_triple, property) in svo_triples.iter().zip(properties.iter()) {
 
         if svo_triple.len() == 5 {
             for template_mod in templates_mod {
 
                 if template_mod[0] == "S" {
-                    sent_to_conll_gold(template_mod, svo_triple, dative, &mut f_svo);
+                    sent_to_conll_gold(template_mod, svo_triple, "svo", property, &mut file);
                 } else if template_mod[0] == "O" {
-                    sent_to_conll_gold(template_mod, svo_triple, dative, &mut f_ovs);
+                    sent_to_conll_gold(template_mod, svo_triple, "ovs", property, &mut file);
                 } else if template_mod[0] == "Deshalb" && template_mod[2] == "O" {
                     if svo_triple[0].starts_with("*") {
                         continue;
                     }
-                    sent_to_conll_gold(template_mod, svo_triple, dative, &mut f_dvos);
+                    sent_to_conll_gold(template_mod, svo_triple, "dvos", property, &mut file);
                 } else if template_mod[0] == "Deshalb" && template_mod[2] == "S" {
                     if svo_triple[0].starts_with("?") {
                         continue;
                     }
-                    sent_to_conll_gold(template_mod, svo_triple, dative, &mut f_dvso);
+                    sent_to_conll_gold(template_mod, svo_triple, "dvso", property, &mut file);
                 } else if template_mod[0] == "Weil" && template_mod[1] == "O" {
                     if svo_triple[0].starts_with("*") {
                         continue;
                     }
-                    sent_to_conll_gold(template_mod, svo_triple, dative, &mut f_wosv);
+                    sent_to_conll_gold(template_mod, svo_triple, "wosv", property, &mut file);
                 } else if template_mod[0] == "Weil" && template_mod[1] == "S" {
                     if svo_triple[0].starts_with("?") {
                         continue;
                     }
-                    sent_to_conll_gold(template_mod, svo_triple, dative, &mut f_dvso);
+                    sent_to_conll_gold(template_mod, svo_triple, "wsov", property, &mut file);
                 }
             }
         } else if svo_triple.len() == 4 {
             for template in templates {
 
                 if template[0] == "S" {
-                    sent_to_conll_gold(template, svo_triple, dative, &mut f_svo);
+                    sent_to_conll_gold(template, svo_triple, "svo", property, &mut file);
                 } else if template[0] == "O" {
-                    sent_to_conll_gold(template, svo_triple, dative, &mut f_ovs);
+                    sent_to_conll_gold(template, svo_triple, "ovs", property, &mut file);
                 } else if template[0] == "Deshalb" && template[2] == "O" {
                     if svo_triple[0].starts_with("*") {
                         continue;
                     }
-                    sent_to_conll_gold(template, svo_triple, dative, &mut f_dvos);
+                    sent_to_conll_gold(template, svo_triple, "dvos", property, &mut file);
                 } else if template[0] == "Deshalb" && template[2] == "S" {
                     if svo_triple[0].starts_with("?") {
                         continue;
                     }
-                    sent_to_conll_gold(template, svo_triple, dative, &mut f_dvso);
+                    sent_to_conll_gold(template, svo_triple, "dvso", property, &mut file);
                 } else if template[0] == "Weil" && template[1] == "O" {
                     if svo_triple[0].starts_with("*") {
                         continue;
                     }
-                    sent_to_conll_gold(template, svo_triple, dative, &mut f_wosv);
+                    sent_to_conll_gold(template, svo_triple, "wosv", property, &mut file);
                 } else if template[0] == "Weil" && template[1] == "S" {
                     if svo_triple[0].starts_with("?") {
                         continue;
                     }
-                    sent_to_conll_gold(template, svo_triple, dative, &mut f_wsov);
+                    sent_to_conll_gold(template, svo_triple, "wsov", property, &mut file);
                 }
             }
         } else {
@@ -117,72 +108,76 @@ pub fn sentence_generator(svo_triples: &Vec<Vec<String>>, templates: &Vec<Vec<St
     Ok(())
 }
 
-fn sent_to_conll_gold(template: &Vec<String>, svo_triple: &Vec<String>, dative: bool, file: &mut File) {
+/// Not working for sentence 'frühe Zucht bringt keine gute Frucht'
+fn sent_to_conll_gold(template: &Vec<String>, svo_triple: &Vec<String>, order: &str, property: &str, file: &mut File) {
 
     let mut conll_idx = 0;
-    for idx in 0..template.len() {
-        let mut token = &template[idx];
+    for templ_idx in 0..template.len() {
+        let mut token = &template[templ_idx];
         if token == "S" {
             let mut tokens = svo_triple[1].split(" ").collect::<Vec<_>>();
-            if tokens.len() > 1 {
-                if idx == 0 {
-                    writeln!(file, "{}\t{}\t_\t_\t_\t_\t_\t_\t_\t_", conll_idx, uppercase_first_letter(&tokens[0]));
+            for subj_idx in 0..tokens.len() {
+                if subj_idx == tokens.len() - 1 {
+                    if templ_idx == 0 {
+                        writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\tnsubj\t_\t_", conll_idx, uppercase_first_letter(&tokens[subj_idx]), order, property);
+                    } else {
+                        writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\tnsubj\t_\t_", conll_idx, &tokens[subj_idx], order, property);
+                    }
+                    continue;
                 } else {
-                    writeln!(file, "{}\t{}\t_\t_\t_\t_\t_\t_\t_\t_", conll_idx, &tokens[0]);
-                }
-                conll_idx += 1;
-                writeln!(file, "{}\t{}\t_\t_\t_\t_\t_\tnsubj\t_\t_", conll_idx, &tokens[1]);
-            } else {
-                if idx == 0 {
-                    writeln!(file, "{}\t{}\t_\t_\t_\t_\t_\tnsubj\t_\t_", conll_idx, uppercase_first_letter(&tokens[0]));
-                } else {
-                    writeln!(file, "{}\t{}\t_\t_\t_\t_\t_\tnsubj\t_\t_", conll_idx, &tokens[0]);
+                    if templ_idx == 0 {
+                        writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_", conll_idx, uppercase_first_letter(&tokens[subj_idx]), order, property);
+                    } else {
+                        writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_", conll_idx, &tokens[subj_idx], order, property);
+                    }
+                    if tokens.len() > 1 {
+                        conll_idx += 1;
+                    }
                 }
             }
         } else if token == "V" {
-            if idx == 0 {
-                writeln!(file, "{}\t{}\t_\t_\t_\t_\t_\tverb\t_\t_", conll_idx, uppercase_first_letter(&svo_triple[2]));
+            if templ_idx == 0 {
+                writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\tverb\t_\t_", conll_idx, uppercase_first_letter(&svo_triple[2]), order, property);
             } else {
-                writeln!(file, "{}\t{}\t_\t_\t_\t_\t_\tverb\t_\t_", conll_idx, svo_triple[2]);
+                writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\tverb\t_\t_", conll_idx, svo_triple[2], order, property);
             }
         } else if token == "O" {
             let mut tokens = svo_triple[3].split(" ").collect::<Vec<_>>();
-            let deprel = if dative {
-                "iobj"
-            } else {
-                "obj"
-            }.to_string();
-            if tokens.len() > 1 {
-                if idx == 0 {
-                    writeln!(file, "{}\t{}\t_\t_\t_\t_\t_\t_\t_\t_", conll_idx, uppercase_first_letter(&tokens[0]));
+            for obj_idx in 0..tokens.len() {
+                if obj_idx == tokens.len() - 1 {
+                    if templ_idx == 0 {
+                        writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\tobj\t_\t_", conll_idx, uppercase_first_letter(&tokens[obj_idx]), order, property);
+                    } else {
+                        writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\tobj\t_\t_", conll_idx, &tokens[obj_idx], order, property);
+                    }
+                    continue;
                 } else {
-                    writeln!(file, "{}\t{}\t_\t_\t_\t_\t_\t_\t_\t_", conll_idx, &tokens[0]);
-                }
-                conll_idx += 1;
-                writeln!(file, "{}\t{}\t_\t_\t_\t_\t_\t{}\t_\t_", conll_idx, &tokens[1], deprel);
-            } else {
-                if idx == 0 {
-                    writeln!(file, "{}\t{}\t_\t_\t_\t_\t_\t{}\t_\t_", conll_idx, uppercase_first_letter(&tokens[0]), deprel);
-                } else {
-                    writeln!(file, "{}\t{}\t_\t_\t_\t_\t_\t{}\t_\t_", conll_idx, &tokens[0], deprel);
+                    if templ_idx == 0 {
+                        writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_", conll_idx, uppercase_first_letter(&tokens[obj_idx]), order, property);
+                    } else {
+                        writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_", conll_idx, &tokens[obj_idx], order, property);
+                    }
+                    if tokens.len() > 1 {
+                        conll_idx += 1;
+                    }
                 }
             }
         } else if token == "VAUX" {
-            if idx == 0 {
-                writeln!(file, "{}\t{}\t_\t_\t_\t_\t_\taux\t_\t_", conll_idx, uppercase_first_letter(&svo_triple[4]));
+            if templ_idx == 0 {
+                writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\taux\t_\t_", conll_idx, uppercase_first_letter(&svo_triple[4]), order, property);
             } else {
-                writeln!(file, "{}\t{}\t_\t_\t_\t_\t_\taux\t_\t_", conll_idx, svo_triple[4]);
+                writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\taux\t_\t_", conll_idx, svo_triple[4], order, property);
             }
         } else {
-            if idx == 0 {
-                writeln!(file, "{}\t{}\t_\t_\t_\t_\t_\t_\t_\t_", conll_idx, uppercase_first_letter(&token));
+            if templ_idx == 0 {
+                writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_", conll_idx, uppercase_first_letter(&token), order, property);
             } else {
-                writeln!(file, "{}\t{}\t_\t_\t_\t_\t_\t_\t_\t_", conll_idx, token);
+                writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_", conll_idx, token, order, property);
             }
         }
         conll_idx += 1;
     }
-    writeln!(file, "{}\t.\t_\t_\t_\t_\t_\tpunct\t_\t_\n", conll_idx);
+    writeln!(file, "{}\t.\t_\t_\t_\torder:{}|props:{}\t_\tpunct\t_\t_\n", conll_idx, order, property);
 }
 
 fn sent_to_conll(template: &Vec<String>, svo_triple: &Vec<String>, file: &mut File) {

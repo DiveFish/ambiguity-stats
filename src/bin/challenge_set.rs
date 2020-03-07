@@ -28,13 +28,16 @@ pub fn main() {
 
     let intput_file = matches.value_of("INPUT").unwrap();
 
-    let triples = extract_triples(&intput_file);
+    let (triples, properties) = extract_triples(&intput_file);
     let (templates, templates_aux) = generate_templates();
-    sentence_generator(&triples, &templates, &templates_aux);
+    sentence_generator(&triples, &properties, &templates, &templates_aux);
 }
 
-fn extract_triples(file: &str) -> Vec<Vec<String>> {
+/// `Properties' includes the property combination, e.g. accusative and ambiguous sentences carry
+/// the property acc-amb
+fn extract_triples(file: &str) -> (Vec<Vec<String>>, Vec<String>) {
     let mut triples = Vec::new();
+    let mut properties = Vec::new();
 
     let f = File::open(&file).expect("Could not open file.");
     for l in BufReader::new(f).lines() {
@@ -42,16 +45,18 @@ fn extract_triples(file: &str) -> Vec<Vec<String>> {
         l = l.trim().to_string();
         let line = l.split("\t").collect::<Vec<_>>();
         // Standard order: S V O (VMOD) when input is S V O or S VMOD O V
-        if line.len() == 5 {
-            triples.push(vec![line[0].to_owned(), line[1].to_owned(), line[4].to_owned(), line[3].to_owned(), line[2].to_owned()]);
-        } else if line.len() == 4 {
-            triples.push(vec![line[0].to_owned(), line[1].to_owned(), line[2].to_owned(), line[3].to_owned()]);
+        if line.len() == 6 {
+            triples.push(vec![line[0].to_owned(), line[2].to_owned(), line[5].to_owned(), line[4].to_owned(), line[3].to_owned()]);
+            properties.push(line[1].to_owned());
+        } else if line.len() == 5 {
+            triples.push(vec![line[0].to_owned(), line[2].to_owned(), line[3].to_owned(), line[4].to_owned()]);
+            properties.push(line[1].to_owned());
         } else {
             eprintln!("Triple length {} not supported.", line.len());
             eprintln!("{:?}", line);
         }
     }
-    triples
+    (triples, properties)
 }
 
 fn generate_templates() -> (Vec<Vec<String>>, Vec<Vec<String>>)  {
