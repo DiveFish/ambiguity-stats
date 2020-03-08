@@ -27,10 +27,11 @@ pub fn main() {
         .get_matches();
 
     let intput_file = matches.value_of("INPUT").unwrap();
+    let output_file = matches.value_of("OUTPUT").unwrap();
 
     let (triples, properties) = extract_triples(&intput_file);
     let (templates, templates_aux) = generate_templates();
-    sentence_generator(&triples, &properties, &templates, &templates_aux);
+    sentence_generator(&triples, &properties, &templates, &templates_aux, output_file);
 }
 
 /// `Properties' includes the property combination, e.g. accusative and ambiguous sentences carry

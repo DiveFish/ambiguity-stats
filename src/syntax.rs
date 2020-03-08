@@ -37,9 +37,8 @@ pub fn label_combos(input: &[Token], pos_patterns: &mut LinkedHashMap<Vec<String
     }
 }
 
-pub fn sentence_generator(svo_triples: &Vec<Vec<String>>, properties: &Vec<String>, templates: &Vec<Vec<String>>, templates_mod: &Vec<Vec<String>>) -> io::Result<()>  {
-    eprintln!("Saving to directory /home/patricia/Dokumente/Promotion/Daten/parser-challenge-set/dataset/test/");
-    let mut file = File::create("/home/patricia/Dokumente/Promotion/Daten/parser-challenge-set/dataset/test/dataset.conll")?;
+pub fn sentence_generator(svo_triples: &Vec<Vec<String>>, properties: &Vec<String>, templates: &Vec<Vec<String>>, templates_mod: &Vec<Vec<String>>, filename: &str) -> io::Result<()>  {
+    let mut file = File::create(filename)?;
 
     for (svo_triple, property) in svo_triples.iter().zip(properties.iter()) {
 
