@@ -22,14 +22,23 @@ pub fn main() {
                 .required(true)
                 .index(2),
         )
+        .arg(
+            Arg::with_name("PARSER")
+                .help("Sets the parser model name to use")
+                .required(false)
+                .index(3),
+        )
         .get_matches();
 
     let golddatafile = matches.value_of("INPUT_GOLD").unwrap();
     let parserdatafile = matches.value_of("INPUT_NONGOLD").unwrap();
+    let parser = matches.value_of("PARSER").unwrap();
     let (golddata, parserdata) = read_gng_data(golddatafile, parserdatafile);
 
-    let las_no_heads = las_no_heads_feats(&parserdata, &golddata);
-    eprintln!("In {}\n# subjects/object accuracy: {}\n", parserdatafile, las_no_heads);
+    // Correct subject/object fit indicated by 1, swap by 0, other label given
+    println!("Parser\tSent\tS fit\tO fit\tS gold\tO gold\tS parser\tO parser\tOrder\tProp1\tProp2");
+    let las_no_heads = las_no_heads_feats(&parserdata, &golddata, &parser);
+    eprintln!("In {}\nSubject/object accuracy: {}\n", parserdatafile, las_no_heads);
     // Attachment scores
     /*
     let (las, uas) = las_uas(&parserdata, &golddata);

@@ -97,26 +97,29 @@ pub fn las_uas_no_punct(output: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> (f3
     )
 }
 
-pub fn las_no_heads_feats(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> f32 {
+pub fn las_no_heads_feats(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, parser_model: &str) -> f32 {
     let mut n_attachments = 0.0;
     let mut label_errors = 0.0;
     for (parsed_sent, gold_sent) in parsed.iter().zip(gold.iter()) {
-        let mut subj_corr = "";
-        let mut obj_corr = "";
-        let mut subj_gold = "";
-        let mut obj_gold = "";
-        let mut subj_parsed = "";
-        let mut obj_parsed = "";
-        let mut order = "";
-        let mut prop1 = "";
-        let mut prop2 = "";
+
+        print!("{}\t", parser_model);
+
+        let mut s_fit = "-1";
+        let mut o_fit = "-1";
+        let mut subj_gold = "UNK";
+        let mut obj_gold = "UNK";
+        let mut subj_parsed = "UNK";
+        let mut obj_parsed = "UNK";
+        let mut order = "UNK";
+        let mut prop1 = "UNK";
+        let mut prop2 = "UNK";
 
         let mut first = true;
         for (parsed_token, gold_token) in parsed_sent.iter().zip(gold_sent.iter()) {
 
             if first {
                 let mut features = gold_token.features().map(Features::as_map).expect("No mapping");
-                order = &features.get("order").expect("No order").as_ref().expect("No more order"); //.as_ref().map(String::as_str);
+                order = &features.get("order").expect("No order").as_ref().expect("No more order");
                 let props =  &features.get("props").expect("No props").as_ref().expect("No more props").split("-").collect::<Vec<_>>();
                 prop1 = props[0];
                 prop2 = props[1];
@@ -144,23 +147,23 @@ pub fn las_no_heads_feats(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> f
                         obj_parsed = parsed_token_rel;
                     }
 
-                    if parsed_token.head_rel() == gold_token.head_rel() && gold_token_rel == "nsubj" {
-                        subj_corr = "1";
-                    } else if parsed_token.head_rel() == gold_token.head_rel() && gold_token_rel == "obj" {
-                        obj_corr = "1";
-                    } else if parsed_token_rel == "nsubj" && gold_token_rel == "obj" {
-                        subj_corr = "0";
-                    } else if parsed_token_rel == "obj" && gold_token_rel == "nsubj" {
-                        obj_corr = "0";
+                    if gold_token_rel == "nsubj" && parsed_token.head_rel() == gold_token.head_rel() {
+                        s_fit = "1";
+                    } else if gold_token_rel == "obj" && parsed_token.head_rel() == gold_token.head_rel() {
+                        o_fit = "1";
+                    } else if gold_token_rel == "nsubj" && parsed_token_rel == "obj" {
+                        s_fit = "0";
+                    } else if gold_token_rel == "obj" && parsed_token_rel == "nsubj" {
+                        o_fit = "0";
                     } else if gold_token_rel == "nsubj" {
-                        subj_corr = parsed_token_rel;
-                    } else if gold_token_rel == "obj" || gold_token_rel == "iobj" {
-                        obj_corr = parsed_token_rel;
+                        s_fit = parsed_token_rel;;
+                    } else if gold_token_rel == "obj" {
+                        o_fit = parsed_token_rel;
                     }
                 }
             }
         }
-        println!("\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}", subj_corr, obj_corr, subj_gold, obj_gold, subj_parsed, obj_parsed, order, prop1, prop2);
+        println!("\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}", s_fit, o_fit, subj_gold, obj_gold, subj_parsed, obj_parsed, order, prop1, prop2);
     }
     1.0 - (label_errors / n_attachments)
 }
