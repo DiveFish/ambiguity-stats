@@ -2,6 +2,7 @@ extern crate conllx;
 
 use conllx::Token;
 use conllx::Features;
+use std::collections::HashMap;
 
 pub fn precision(true_pos: f32, false_pos: f32) -> f32 {
     true_pos / (true_pos + false_pos)
@@ -97,6 +98,9 @@ pub fn las_uas_no_punct(output: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> (f3
     )
 }
 
+/// Attachment scores for parser challenge set. Outputs the overall accuracy for subject and
+/// object relation along with a sentence-based analysis of label fits, etc. in the format
+/// Parser  Sentence    Subject fit   Object fit    Subject gold    Object gold Subject parser  Object parser Word order    Property 1  Property 2
 pub fn las_no_heads_feats(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, parser_model: &str) -> f32 {
     let mut n_attachments = 0.0;
     let mut label_errors = 0.0;
@@ -117,6 +121,7 @@ pub fn las_no_heads_feats(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, pars
         let mut first = true;
         for (parsed_token, gold_token) in parsed_sent.iter().zip(gold_sent.iter()) {
 
+            // Extract sentence properties from first token
             if first {
                 let mut features = gold_token.features().map(Features::as_map).expect("No mapping");
                 order = &features.get("order").expect("No order").as_ref().expect("No more order");
@@ -166,6 +171,58 @@ pub fn las_no_heads_feats(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, pars
         println!("\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}", s_fit, o_fit, subj_gold, obj_gold, subj_parsed, obj_parsed, order, prop1, prop2);
     }
     1.0 - (label_errors / n_attachments)
+}
+
+/// Accuracy per challenge set property, incl. (morpho-)syntactic and semantic properties along
+/// with word order.
+pub fn prop_scores(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, parser_model: &str) {
+    let mut prop_cnts = HashMap::new();
+    let mut prop_errs = HashMap::new();
+    let mut order = "UNK";
+    let mut prop1 = "UNK";
+    let mut prop2 = "UNK";
+
+    for (parsed_sent, gold_sent) in parsed.iter().zip(gold.iter()) {
+        let mut first = true;
+        for (parsed_token, gold_token) in parsed_sent.iter().zip(gold_sent.iter()) {
+
+            // Extract sentence properties from first token
+            if first {
+                let mut features = gold_token.features().map(Features::as_map).expect("No mapping");
+                order = &features.get("order").expect("No order").as_ref().expect("No more order");
+                let props =  &features.get("props").expect("No props").as_ref().expect("No more props").split("-").collect::<Vec<_>>();
+                prop1 = props[0];
+                prop2 = props[1];
+                first = false;
+            }
+
+            if let Some(gold_token_rel) = gold_token.head_rel() {
+                let gold_token_rel = gold_token.head_rel().expect("No head rel");
+                let parsed_token_rel = parsed_token.head_rel().expect("No head rel");
+
+                if gold_token_rel == "nsubj" || gold_token_rel == "obj" {
+                    *prop_cnts.entry(order).or_insert(0.0) += 1.0;
+                    *prop_cnts.entry(prop1).or_insert(0.0) += 1.0;
+                    if prop1 != prop2 {
+                        *prop_cnts.entry(prop2).or_insert(0.0) += 1.0;
+                    }
+
+                    if parsed_token.head_rel() != gold_token.head_rel() {
+                        *prop_errs.entry(order).or_insert(0.0) += 1.0;
+                        *prop_errs.entry(prop1).or_insert(0.0) += 1.0;
+                        if prop1 != prop2 {
+                            *prop_errs.entry(prop2).or_insert(0.0) += 1.0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    for (prop, prop_cnt) in prop_cnts.iter() {
+        let err_cnt = prop_errs.get(prop).expect("No prop");
+        println!("{}\t{}\t{}", parser_model, prop, 1.0 - err_cnt/prop_cnt);
+    }
 }
 
 pub fn per_sent_las(output: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> Vec<f32> {

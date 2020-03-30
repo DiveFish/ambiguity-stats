@@ -69,6 +69,8 @@ fn generate_templates() -> (Vec<Vec<String>>, Vec<Vec<String>>)  {
     templates.push(vec![o.clone(), v.clone(), s.clone()]);
     templates.push(vec!["Deshalb".to_owned(), v.clone(), s.clone(), o.clone()]);
     templates.push(vec!["Deshalb".to_owned(), v.clone(), o.clone(), s.clone()]);
+    templates.push(vec![v.clone(), s.clone(), o.clone(), "?".to_owned()]);
+    templates.push(vec![v.clone(), o.clone(), s.clone(), "?".to_owned()]);
     templates.push(vec!["Weil".to_owned(), s.clone(), o.clone(), v.clone()]);
     templates.push(vec!["Weil".to_owned(), o.clone(), s.clone(), v.clone()]);
 
@@ -81,6 +83,8 @@ fn generate_templates() -> (Vec<Vec<String>>, Vec<Vec<String>>)  {
     templates_aux.push(vec![o.clone(), v_aux.clone(), s.clone(), v.clone()]);
     templates_aux.push(vec!["Deshalb".to_owned(), v_aux.clone(), s.clone(), o.clone(), v.clone()]);
     templates_aux.push(vec!["Deshalb".to_owned(), v_aux.clone(), o.clone(), s.clone(), v.clone()]);
+    templates_aux.push(vec![v_aux.clone(), s.clone(), o.clone(), v.clone(), "?".to_owned()]);
+    templates_aux.push(vec![v_aux.clone(), o.clone(), s.clone(), v.clone(), "?".to_owned()]);
     templates_aux.push(vec!["Weil".to_owned(), s.clone(), o.clone(), v.clone(), v_aux.clone()]);
     templates_aux.push(vec!["Weil".to_owned(), o.clone(), s.clone(), v.clone(), v_aux.clone()]);
 

@@ -36,9 +36,12 @@ pub fn main() {
     let (golddata, parserdata) = read_gng_data(golddatafile, parserdatafile);
 
     // Correct subject/object fit indicated by 1, swap by 0, other label given
-    println!("Parser\tSent\tS fit\tO fit\tS gold\tO gold\tS parser\tO parser\tOrder\tProp1\tProp2");
-    let las_no_heads = las_no_heads_feats(&parserdata, &golddata, &parser);
-    eprintln!("In {}\nSubject/object accuracy: {}\n", parserdatafile, las_no_heads);
+    //println!("Parser\tSent\tS fit\tO fit\tS gold\tO gold\tS parser\tO parser\tOrder\tProp1\tProp2");
+    //let las_no_heads = las_no_heads_feats(&parserdata, &golddata, &parser);
+    //eprintln!("In {}\nSubject/object accuracy: {}\n", parserdatafile, las_no_heads);
+
+    prop_scores(&parserdata, &golddata, &parser);
+
     // Attachment scores
     /*
     let (las, uas) = las_uas(&parserdata, &golddata);
