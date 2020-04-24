@@ -37,7 +37,15 @@ pub fn label_combos(input: &[Token], pos_patterns: &mut LinkedHashMap<Vec<String
     }
 }
 
-pub fn sentence_generator(svo_triples: &Vec<Vec<String>>, properties: &Vec<String>, templates: &Vec<Vec<String>>, templates_aux: &Vec<Vec<String>>, filename: &str) -> io::Result<()>  {
+pub fn sentence_generator(
+    svo_triples: &Vec<Vec<String>>,
+    properties: &Vec<String>,
+    templates: &Vec<Vec<String>>,
+    templates_aux: &Vec<Vec<String>>,
+    v1_intro: &str,
+    vl_intro: &str,
+    filename: &str
+) -> io::Result<()>  {
     let mut file = File::create(filename)?;
 
     for (svo_triple, property) in svo_triples.iter().zip(properties.iter()) {
@@ -49,12 +57,12 @@ pub fn sentence_generator(svo_triples: &Vec<Vec<String>>, properties: &Vec<Strin
                     sent_to_conll_gold(template_aux, svo_triple, "VF[S]LK[V]MF[O]", property, &mut file);
                 } else if template_aux[0] == "O" {
                     sent_to_conll_gold(template_aux, svo_triple, "VF[O]LK[V]MF[S]", property, &mut file);
-                } else if template_aux[0] == "Deshalb" && template_aux[2] == "S" {
+                } else if template_aux[0] == v1_intro && template_aux[2] == "S" {
                     if svo_triple[0].starts_with("?") {
                         continue;
                     }
                     sent_to_conll_gold(template_aux, svo_triple, "LK[V]MF[SO]", property, &mut file);
-                } else if template_aux[0] == "Deshalb" && template_aux[2] == "O" {
+                } else if template_aux[0] == v1_intro && template_aux[2] == "O" {
                     if svo_triple[0].starts_with("*") {
                         continue;
                     }
@@ -69,12 +77,12 @@ pub fn sentence_generator(svo_triples: &Vec<Vec<String>>, properties: &Vec<Strin
                         continue;
                     }
                     sent_to_conll_gold(template_aux, svo_triple, "LK[V]MF[OS]Q", property, &mut file);
-                } else if template_aux[0] == "Weil" && template_aux[1] == "S" {
+                } else if template_aux[0] == vl_intro && template_aux[1] == "S" {
                     if svo_triple[0].starts_with("?") {
                         continue;
                     }
                     sent_to_conll_gold(template_aux, svo_triple, "MF[SO]VC[V]", property, &mut file);
-                } else if template_aux[0] == "Weil" && template_aux[1] == "O" {
+                } else if template_aux[0] == vl_intro && template_aux[1] == "O" {
                     if svo_triple[0].starts_with("*") {
                         continue;
                     }
@@ -88,12 +96,12 @@ pub fn sentence_generator(svo_triples: &Vec<Vec<String>>, properties: &Vec<Strin
                     sent_to_conll_gold(template, svo_triple, "VF[S]LK[V]MF[O]", property, &mut file);
                 } else if template[0] == "O" {
                     sent_to_conll_gold(template, svo_triple, "VF[O]LK[V]MF[S]", property, &mut file);
-                } else if template[0] == "Deshalb" && template[2] == "S" {
+                } else if template[0] == v1_intro && template[2] == "S" {
                     if svo_triple[0].starts_with("?") {
                         continue;
                     }
                     sent_to_conll_gold(template, svo_triple, "LK[V]MF[SO]", property, &mut file);
-                } else if template[0] == "Deshalb" && template[2] == "O" {
+                } else if template[0] == v1_intro && template[2] == "O" {
                     if svo_triple[0].starts_with("*") {
                         continue;
                     }
@@ -108,12 +116,12 @@ pub fn sentence_generator(svo_triples: &Vec<Vec<String>>, properties: &Vec<Strin
                         continue;
                     }
                     sent_to_conll_gold(template, svo_triple, "LK[V]MF[OS]Q", property, &mut file);
-                } else if template[0] == "Weil" && template[1] == "S" {
+                } else if template[0] == vl_intro && template[1] == "S" {
                     if svo_triple[0].starts_with("?") {
                         continue;
                     }
                     sent_to_conll_gold(template, svo_triple, "MF[SO]VC[V]", property, &mut file);
-                } else if template[0] == "Weil" && template[1] == "O" {
+                } else if template[0] == vl_intro && template[1] == "O" {
                     if svo_triple[0].starts_with("*") {
                         continue;
                     }

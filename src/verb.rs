@@ -559,3 +559,107 @@ pub fn err_by_verb(gold_sent: &[Token], parser_sent: &[Token], inv_errs: &mut Ha
     }
 }
 
+pub fn wo_freqs(sent: &[Token]) -> (usize, usize, usize, usize, usize, usize) {
+    let mut head_verb_args = HashMap::new();
+    let mut aux_content_verbs = HashMap::new();
+
+    for i in 0..sent.len() {
+        let token = &sent[i];
+        let deprel = token.head_rel().expect("No deprel");
+        let head = token.head().expect("No head");
+        if head > 0 && deprel == "AUX" { // Reattach auxiliary verb to content verb
+            let mut aux_verb_idx = head - 1;
+            while aux_verb_idx > 0 && sent[aux_verb_idx].head_rel().expect("No deprel").eq("AUX") {
+                if sent[aux_verb_idx].head().expect("No head") > 0 {
+                    aux_verb_idx = sent[aux_verb_idx].head().expect("No head") - 1;
+                } else {
+                    break;
+                }
+            }
+            aux_content_verbs.insert(aux_verb_idx, i);
+        }
+    }
+
+    for i in 1..sent.len() {
+        let gold_token = &sent[i];
+        let mut content_verb_idx = 0;
+
+        let deprel = gold_token.head_rel().expect("No deprel");
+        let head = gold_token.head().expect("No head");
+
+        if (deprel == "SUBJ" || deprel == "OBJA" || deprel == "OBJD") && head > 0 {
+            let mut verb_idx = head - 1;
+            if let Some(content_verb_idx) = aux_content_verbs.get(&verb_idx) {
+                verb_idx = *content_verb_idx;
+            };
+            if deprel == "SUBJ" {
+                let entry = head_verb_args.entry(verb_idx).or_insert(vec![0; 5]);
+                entry[0] = i;
+            } else if deprel == "OBJA" || deprel == "OBJD" {
+                let entry = head_verb_args.entry(verb_idx).or_insert(vec![0; 5]);
+
+                if entry[1] == 0 {
+                    entry[1] = i;
+                } else if entry[2] == 0 {
+                    entry[2] = i;
+                } else if entry[3] == 0 {
+                    entry[3] = i;
+                } else if entry[4] == 0 {
+                    entry[4] = i;
+                }
+            }
+        }
+    }
+
+    let mut svo = 0;
+    let mut ovs = 0;
+    let mut vso = 0;
+    let mut vos = 0;
+    let mut sov = 0;
+    let mut osv = 0;
+
+    for (verb_idx, verb_args) in head_verb_args.iter() {
+
+        let verb = sent[*verb_idx].clone();
+        let verb_form = verb.form().clone();
+
+        let subj_idx = verb_args[0];
+        let obj1_idx = verb_args[1];
+        let obj2_idx = verb_args[2];
+        let obj3_idx = verb_args[3];
+        let obj4_idx = verb_args[4];
+        let mut objects = Vec::with_capacity(4);
+        objects.push(obj1_idx);
+        objects.push(obj2_idx);
+        objects.push(obj3_idx);
+        objects.push(obj4_idx);
+
+        if subj_idx > 0 {
+
+            let subj = sent[subj_idx].clone();
+            let subj_form = subj.form().clone();
+
+            for obj_idx in objects {
+                if obj_idx == 0 {
+                    break;
+                } else {
+                    if subj_idx < *verb_idx && *verb_idx < obj_idx {
+                        svo += 1;
+                    } else if subj_idx < obj_idx && obj_idx < *verb_idx {
+                        sov += 1;
+                    } else if *verb_idx < subj_idx && subj_idx < obj_idx {
+                        vso += 1;
+                    } else if *verb_idx < obj_idx && obj_idx < subj_idx {
+                        vos += 1;
+                    } else if obj_idx < subj_idx && subj_idx < *verb_idx {
+                        osv += 1;
+                    } else if obj_idx < *verb_idx && *verb_idx < subj_idx {
+                        ovs += 1;
+                    }
+                }
+            }
+        }
+    }
+    (svo, ovs, vso, vos, sov, osv)
+}
+

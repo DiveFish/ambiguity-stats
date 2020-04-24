@@ -2,7 +2,7 @@ extern crate conllx;
 
 use conllx::Token;
 use conllx::Features;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 pub fn precision(true_pos: f32, false_pos: f32) -> f32 {
     true_pos / (true_pos + false_pos)
@@ -176,8 +176,8 @@ pub fn las_no_heads_feats(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, pars
 /// Accuracy per challenge set property, incl. (morpho-)syntactic and semantic properties along
 /// with word order.
 pub fn prop_scores(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, parser_model: &str) {
-    let mut prop_cnts = HashMap::new();
-    let mut prop_errs = HashMap::new();
+    let mut prop_cnts = BTreeMap::new();
+    let mut prop_errs = BTreeMap::new();
     let mut order = "UNK";
     let mut prop1 = "UNK";
     let mut prop2 = "UNK";
@@ -222,6 +222,85 @@ pub fn prop_scores(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, parser_mode
     for (prop, prop_cnt) in prop_cnts.iter() {
         let err_cnt = prop_errs.get(prop).expect("No prop");
         println!("{}\t{}\t{}", parser_model, prop, 1.0 - err_cnt/prop_cnt);
+    }
+}
+/// Accuracy per challenge set property, incl. (morpho-)syntactic and semantic properties along
+/// with word order.
+pub fn prop_scores_combined(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, parser_model: &str, num_feature: usize) {
+    let mut prop_cnts = BTreeMap::new();
+    let mut prop_errs = BTreeMap::new();
+
+    for (parsed_sent, gold_sent) in parsed.iter().zip(gold.iter()) {
+        let mut prop1 = String::new();
+        let mut prop2 = String::new();
+        let mut prop3 = String::new();
+        let mut first = true;
+        for (parsed_token, gold_token) in parsed_sent.iter().zip(gold_sent.iter()) {
+
+            // Extract sentence properties from first token
+            if first {
+                let mut features = gold_token.features().map(Features::as_map).expect("No mapping");
+                let order = &features.get("order").expect("No order").as_ref().expect("No more order");
+                let props =  &features.get("props").expect("No props").as_ref().expect("No more props").split("-").collect::<Vec<_>>();
+                if num_feature == 3 {
+                    prop1 = String::new();
+                    prop1.push_str(order);
+                    prop1.push_str("-");
+                    prop1.push_str(props[0]);
+                    prop1.push_str("-");
+                    prop1.push_str(props[1]);
+                } else {
+                    prop1 = String::new();
+                    prop1.push_str(order);
+                    if num_feature == 2 {
+                        prop1.push_str("-");
+                        prop1.push_str(props[0]);
+                    }
+                    prop2 = String::new();
+                    if num_feature == 2 {
+                        prop2.push_str(order);
+                        prop2.push_str("-");
+                    }
+                    prop2.push_str(props[1]);
+                    prop3 = String::new();
+                    prop3.push_str(props[0]);
+                    if num_feature == 2 {
+                        prop3.push_str("-");
+                        prop3.push_str(props[1]);
+                    }
+                }
+                first = false;
+            }
+
+            if let Some(gold_token_rel) = gold_token.head_rel() {
+                let gold_token_rel = gold_token.head_rel().expect("No head rel");
+                let parsed_token_rel = parsed_token.head_rel().expect("No head rel");
+
+                if gold_token_rel == "nsubj" || gold_token_rel == "obj" {
+                    *prop_cnts.entry(prop1.clone()).or_insert(0.0) += 1.0;
+                    if num_feature != 3 {
+                        *prop_cnts.entry(prop2.clone()).or_insert(0.0) += 1.0;
+                        *prop_cnts.entry(prop3.clone()).or_insert(0.0) += 1.0;
+                    }
+
+                    if parsed_token.head_rel() != gold_token.head_rel() {
+                        *prop_errs.entry(prop1.clone()).or_insert(0.0) += 1.0;
+                        if num_feature != 3 {
+                            *prop_errs.entry(prop2.clone()).or_insert(0.0) += 1.0;
+                            *prop_errs.entry(prop3.clone()).or_insert(0.0) += 1.0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    for (prop, prop_cnt) in prop_cnts.iter() {
+        if let Some(err_cnt) = prop_errs.get(prop) {
+            println!("{}\t{}\t{}", parser_model, prop, 1.0 - err_cnt/prop_cnt);
+        } else  {
+            println!("{}\t{}\t{}", parser_model, prop, 1.0);
+        }
     }
 }
 

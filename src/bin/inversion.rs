@@ -50,13 +50,29 @@ fn get_ccrawl_triples(files: &[String]) {
 }
 
 fn get_svo_triples(files: &[String]) {
+
+    let mut svo_all = 0;
+    let mut ovs_all = 0;
+    let mut vso_all = 0;
+    let mut vos_all = 0;
+    let mut sov_all = 0;
+    let mut osv_all = 0;
+
     for file in files {
         eprintln!("{}", file);
         let text = read_data(&file);
         for sent in text.iter() {
-            svo_triples(sent, false, "OBJD");
+            let (svo, ovs, vso, vos, sov, osv) = wo_freqs(sent);
+            svo_all += svo;
+            ovs_all += ovs;
+            vso_all += vso;
+            vos_all += vos;
+            sov_all += sov;
+            osv_all += osv;
         }
     }
+    println!("svo, ovs, vso, vos, sov, osv");
+    println!("{} {} {} {} {} {}", svo_all, ovs_all, vso_all, vos_all, sov_all, osv_all);
 }
 
 ///The verb file contains a list of verbs which will be annotated with metadata from GermaNet.
