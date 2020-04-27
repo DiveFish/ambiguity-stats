@@ -33,6 +33,9 @@ pub use io::*;
 
 pub mod readers;
 
+pub mod topicalization;
+pub use topicalization::*;
+
 mod pmi_map_utils;
 pub use pmi_map_utils::*;
 
