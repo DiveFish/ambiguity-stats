@@ -12,6 +12,8 @@ use std::fs::{self, File};
 use std::io::{self, Write};
 use std::path::Path;
 
+//TODO: Check for all places with i whether i+1 should be used
+
 pub fn svo_triples(sent: &[Token], lemma: bool, object_rel: &str) {
     let mut head_verb_args = HashMap::new();
     let mut aux_content_verbs = HashMap::new();
@@ -35,7 +37,6 @@ pub fn svo_triples(sent: &[Token], lemma: bool, object_rel: &str) {
 
     for i in 1..sent.len() {
         let gold_token = &sent[i];
-        let mut content_verb_idx = 0;
 
         let deprel = gold_token.head_rel().expect("No deprel");
         let head = gold_token.head().expect("No head");
@@ -160,7 +161,6 @@ pub fn ccrawl_triples(text: &Vec<Vec<Token>>, lemma: bool, output_filename: &str
 
         for i in 1..sent.len() {
             let gold_token = &sent[i];
-            let mut content_verb_idx = 0;
 
             let deprel = gold_token.head_rel().expect("No deprel");
             let head = gold_token.head().expect("No head");
@@ -218,16 +218,16 @@ pub fn ccrawl_triples(text: &Vec<Vec<Token>>, lemma: bool, output_filename: &str
                         if lemma {
                             if subj.lemma().is_some() && verb.lemma().is_some() && obj.lemma().is_some() {
                                 if subj_idx > obj_idx {
-                                    encoded_file.write_all(format!("{}\t{}\t{}\n", obj.lemma().expect("No object lemma"), verb.lemma().expect("No verb lemma").replace("\"", "").replace("#", "").split("%").collect::<Vec<&str>>()[0], subj.lemma().expect("No subject lemma")).as_bytes());
+                                    let _ = encoded_file.write_all(format!("{}\t{}\t{}\n", obj.lemma().expect("No object lemma"), verb.lemma().expect("No verb lemma").replace("\"", "").replace("#", "").split("%").collect::<Vec<&str>>()[0], subj.lemma().expect("No subject lemma")).as_bytes());
                                 } else {
-                                    encoded_file.write_all(format!("{}\t{}\t{}\n", subj.lemma().expect("No object lemma"), verb.lemma().expect("No verb lemma").replace("\"", "").replace("#", "").split("%").collect::<Vec<&str>>()[0], obj.lemma().expect("No subject lemma")).as_bytes());
+                                    let _ = encoded_file.write_all(format!("{}\t{}\t{}\n", subj.lemma().expect("No object lemma"), verb.lemma().expect("No verb lemma").replace("\"", "").replace("#", "").split("%").collect::<Vec<&str>>()[0], obj.lemma().expect("No subject lemma")).as_bytes());
                                 }
                             }
                         } else {
                             if subj_idx > obj_idx {
-                                encoded_file.write_all(format!("{}\t{}\t{}\n", subj_form, verb_form.to_lowercase(), obj_form).as_bytes());
+                                let _ = encoded_file.write_all(format!("{}\t{}\t{}\n", subj_form, verb_form.to_lowercase(), obj_form).as_bytes());
                             } else {
-                                encoded_file.write_all(format!("{}\t{}\t{}\n", obj_form, verb_form.to_lowercase(), subj_form).as_bytes());
+                                let _ = encoded_file.write_all(format!("{}\t{}\t{}\n", obj_form, verb_form.to_lowercase(), subj_form).as_bytes());
                             }
                         }
                     }
@@ -257,7 +257,6 @@ pub fn inversion_verbs_content(gold_sent: &[Token]) -> (Vec<String>, Vec<String>
 
     for i in 1..gold_sent.len() {
         let gold_token = &gold_sent[i];
-        let mut content_verb_idx = 0;
 
         if gold_token.head_rel().is_some() && gold_token.head().is_some() {
             //For NoSta-D << Remove?
@@ -582,7 +581,6 @@ pub fn wo_freqs(sent: &[Token]) -> (usize, usize, usize, usize, usize, usize) {
 
     for i in 1..sent.len() {
         let gold_token = &sent[i];
-        let mut content_verb_idx = 0;
 
         let deprel = gold_token.head_rel().expect("No deprel");
         let head = gold_token.head().expect("No head");
@@ -663,3 +661,54 @@ pub fn wo_freqs(sent: &[Token]) -> (usize, usize, usize, usize, usize, usize) {
     (svo, ovs, vso, vos, sov, osv)
 }
 
+/// In the Hamburg treebank annotation scheme, subjects are attached to the inflected verb, objects
+/// to the content verb. In order to retrieve subjects and objects that belong together, the inflected
+/// verb has to be mapped to the content verb, just as the object.
+pub fn content_verbs_hdt(sent: &Vec<Token>) -> HashMap<usize, usize> {
+
+    let mut aux_content_verbs = HashMap::new();
+
+    for i in 0..sent.len() {
+        let token = &sent[i];
+        let deprel = token.head_rel().expect("No deprel");
+        let head = token.head().expect("No head");
+        if head > 0 && deprel == "AUX" {
+            // Reattach auxiliary verb to content verb
+            let mut aux_verb_idx = head - 1;
+            while aux_verb_idx > 0 && sent[aux_verb_idx].head_rel().expect("No deprel").eq("AUX") {
+                if sent[aux_verb_idx].head().expect("No head") > 0 {
+                    aux_verb_idx = sent[aux_verb_idx].head().expect("No head") - 1;
+                } else {
+                    break;
+                }
+            }
+            aux_content_verbs.entry(aux_verb_idx).or_insert(i);
+        }
+    }
+    aux_content_verbs
+}
+
+/// In UD, all verbs in a sentence are headed by the content verb. This methods looks for all
+/// inflected verbs in a sentence and stores a mapping from the content verb to the inflected verb.
+/// It is then possible to retrieve the content verb's inflected verb which is important when
+/// dealing with topoligical fields and word order in German.
+pub fn inflected_verbs_ud(sent: &Vec<Token>, language: &str) -> HashMap<usize, usize> {
+
+    let mut content_inflected_verbs = HashMap::new();
+    for i in 0..sent.len() {
+        let token = &sent[i];
+        let deprel = token.head_rel().expect("No deprel");
+        let pos = token.pos().expect("No pos");
+        let head = token.head().expect("No head");
+        if language == "german" {
+            if head > 0 && pos.ends_with("FIN") && deprel == "aux" {    // Assumes combined UD-HDT PoS tags
+                content_inflected_verbs.insert(head - 1, i);
+            }
+        } else if language == "dutch" {
+            if head > 0 && pos.ends_with("pv") && deprel == "aux" {    // Assumes combined UD-HDT PoS tags
+                content_inflected_verbs.insert(head - 1, i);
+            }
+        }
+    }
+    content_inflected_verbs
+}

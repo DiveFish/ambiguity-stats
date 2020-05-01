@@ -174,20 +174,20 @@ fn sent_to_conll_gold(template: &Vec<String>, svo_triple: &Vec<String>, order: &
     for templ_idx in 0..template.len() {
         let mut token = &template[templ_idx];
         if token == "S" {
-            let mut tokens_inner = svo_triple[1].split(" ").collect::<Vec<_>>();
+            let tokens_inner = svo_triple[1].split(" ").collect::<Vec<_>>();
             for subj_idx in 0..tokens_inner.len() {
                 if subj_idx == tokens_inner.len() - 1 {
                     if conll_idx == 0 {
-                        writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t{}\tnsubj\t_\t_", conll_idx + 1, uppercase_first_letter(&tokens_inner[subj_idx]), order, property, v_head);
+                        let _ = writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t{}\tnsubj\t_\t_", conll_idx + 1, uppercase_first_letter(&tokens_inner[subj_idx]), order, property, v_head);
                     } else {
-                        writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t{}\tnsubj\t_\t_", conll_idx + 1, &tokens_inner[subj_idx], order, property, v_head);
+                        let _ = writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t{}\tnsubj\t_\t_", conll_idx + 1, &tokens_inner[subj_idx], order, property, v_head);
                     }
                     continue;
                 } else {
                     if conll_idx == 0 {
-                        writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_", conll_idx + 1, uppercase_first_letter(&tokens_inner[subj_idx]), order, property);
+                        let _ = writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_", conll_idx + 1, uppercase_first_letter(&tokens_inner[subj_idx]), order, property);
                     } else {
-                        writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_", conll_idx + 1, &tokens_inner[subj_idx], order, property);
+                        let _ = writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_", conll_idx + 1, &tokens_inner[subj_idx], order, property);
                     }
                     if tokens_inner.len() > 1 {
                         conll_idx += 1;
@@ -196,25 +196,25 @@ fn sent_to_conll_gold(template: &Vec<String>, svo_triple: &Vec<String>, order: &
             }
         } else if token == "V" {
             if conll_idx == 0 {
-                writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t0\tverb\t_\t_", conll_idx + 1, uppercase_first_letter(&svo_triple[2]), order, property);
+                let _ =  writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t0\tverb\t_\t_", conll_idx + 1, uppercase_first_letter(&svo_triple[2]), order, property);
             } else {
-                writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t0\tverb\t_\t_", conll_idx + 1, svo_triple[2], order, property);
+                let _ = writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t0\tverb\t_\t_", conll_idx + 1, svo_triple[2], order, property);
             }
         } else if token == "O" {
-            let mut tokens_inner = svo_triple[3].split(" ").collect::<Vec<_>>();
+            let tokens_inner = svo_triple[3].split(" ").collect::<Vec<_>>();
             for obj_idx in 0..tokens_inner.len() {
                 if obj_idx == tokens_inner.len() - 1 {
                     if conll_idx == 0 {
-                        writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t{}\tobj\t_\t_", conll_idx + 1, uppercase_first_letter(&tokens_inner[obj_idx]), order, property, v_head);
+                        let _ = writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t{}\tobj\t_\t_", conll_idx + 1, uppercase_first_letter(&tokens_inner[obj_idx]), order, property, v_head);
                     } else {
-                        writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t{}\tobj\t_\t_", conll_idx + 1, &tokens_inner[obj_idx], order, property, v_head);
+                        let _ = writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t{}\tobj\t_\t_", conll_idx + 1, &tokens_inner[obj_idx], order, property, v_head);
                     }
                     continue;
                 } else {
                     if conll_idx == 0 {
-                        writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_", conll_idx + 1, uppercase_first_letter(&tokens_inner[obj_idx]), order, property);
+                        let _ = writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_", conll_idx + 1, uppercase_first_letter(&tokens_inner[obj_idx]), order, property);
                     } else {
-                        writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_", conll_idx + 1, &tokens_inner[obj_idx], order, property);
+                        let _ = writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_", conll_idx + 1, &tokens_inner[obj_idx], order, property);
                     }
                     if tokens_inner.len() > 1 {
                         conll_idx += 1;
@@ -223,23 +223,23 @@ fn sent_to_conll_gold(template: &Vec<String>, svo_triple: &Vec<String>, order: &
             }
         } else if token == "VAUX" {
             if conll_idx == 0 {
-                writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_", conll_idx + 1, uppercase_first_letter(&svo_triple[4]), order, property);
+                let _ = writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_", conll_idx + 1, uppercase_first_letter(&svo_triple[4]), order, property);
             } else {
-                writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_", conll_idx + 1, svo_triple[4], order, property);
+                let _ = writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_", conll_idx + 1, svo_triple[4], order, property);
             }
         } else if token != "?" {
             if conll_idx == 0 {
-                writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_", conll_idx + 1, uppercase_first_letter(&token), order, property);
+                let _ = writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_", conll_idx + 1, uppercase_first_letter(&token), order, property);
             } else {
-                writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_", conll_idx + 1, token, order, property);
+                let _ = writeln!(file, "{}\t{}\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_", conll_idx + 1, token, order, property);
             }
         }
         conll_idx += 1;
     }
     if template[template.len() - 1] == "?" {
-        writeln!(file, "{}\t?\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_\n", conll_idx + 1, order, property);
+        let _ = writeln!(file, "{}\t?\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_\n", conll_idx + 1, order, property);
     } else {
-        writeln!(file, "{}\t.\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_\n", conll_idx + 1, order, property);
+        let _ = writeln!(file, "{}\t.\t_\t_\t_\torder:{}|props:{}\t_\t_\t_\t_\n", conll_idx + 1, order, property);
     }
 }
 
@@ -259,57 +259,57 @@ fn sent_to_conll(template: &Vec<String>, svo_triple: &Vec<String>, file: &mut Fi
     let mut conll_idx = 0;
     for idx in 0..template.len() {
 
-        let mut token = &template[idx];
+        let token = &template[idx];
 
         if token == "S" {
-            let mut tokens = svo_triple[1].split(" ").collect::<Vec<_>>();
+            let tokens = svo_triple[1].split(" ").collect::<Vec<_>>();
             for tok_idx in 0..tokens.len() {
                 if idx == 0 && tok_idx == 0 {
-                    writeln!(file, "{}\t{}", conll_idx, uppercase_first_letter(&tokens[tok_idx]));
+                    let _ = writeln!(file, "{}\t{}", conll_idx, uppercase_first_letter(&tokens[tok_idx]));
                     conll_idx += 1;
                 } else {
-                    writeln!(file, "{}\t{}", conll_idx, tokens[tok_idx]);
+                    let _ = writeln!(file, "{}\t{}", conll_idx, tokens[tok_idx]);
                     conll_idx += 1;
                 }
             }
         } else if token == "V" {
             if idx == 0 {
-                writeln!(file, "{}\t{}", conll_idx, uppercase_first_letter(&svo_triple[2]));
+                let _ = writeln!(file, "{}\t{}", conll_idx, uppercase_first_letter(&svo_triple[2]));
                 conll_idx += 1;
             } else {
-                writeln!(file, "{}\t{}", conll_idx, svo_triple[2]);
+                let _ = writeln!(file, "{}\t{}", conll_idx, svo_triple[2]);
                 conll_idx += 1;
             }
         } else if token == "O" {
-            let mut tokens = svo_triple[3].split(" ").collect::<Vec<_>>();
+            let tokens = svo_triple[3].split(" ").collect::<Vec<_>>();
             for tok_idx in 0..tokens.len() {
                 if idx == 0 && tok_idx == 0 {
-                    writeln!(file, "{}\t{}", conll_idx, uppercase_first_letter(&tokens[tok_idx]));
+                    let _ = writeln!(file, "{}\t{}", conll_idx, uppercase_first_letter(&tokens[tok_idx]));
                     conll_idx += 1;
                 } else {
-                    writeln!(file, "{}\t{}", conll_idx, tokens[tok_idx]);
+                    let _ = writeln!(file, "{}\t{}", conll_idx, tokens[tok_idx]);
                     conll_idx += 1;
                 }
             }
         } else if token == "VAUX" {
             if idx == 0 {
-                writeln!(file, "{}\t{}", conll_idx, uppercase_first_letter(&svo_triple[4]));
+                let _ = writeln!(file, "{}\t{}", conll_idx, uppercase_first_letter(&svo_triple[4]));
                 conll_idx += 1;
             } else {
-                writeln!(file, "{}\t{}", conll_idx, svo_triple[4]);
+                let _ = writeln!(file, "{}\t{}", conll_idx, svo_triple[4]);
                 conll_idx += 1;
             }
         } else {
             if idx == 0 {
-                writeln!(file, "{}\t{}", conll_idx, uppercase_first_letter(&token));
+                let _ = writeln!(file, "{}\t{}", conll_idx, uppercase_first_letter(&token));
                 conll_idx += 1;
             } else {
-                writeln!(file, "{}\t{}", conll_idx, token);
+                let _ = writeln!(file, "{}\t{}", conll_idx, token);
                 conll_idx += 1;
             }
         }
     }
-    writeln!(file, "{}\t.\n", conll_idx);
+    let _ = writeln!(file, "{}\t.\n", conll_idx);
 }
 
 fn uppercase_first_letter(s: &str) -> String {

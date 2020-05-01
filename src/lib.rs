@@ -31,8 +31,6 @@ pub use graph::*;
 mod io;
 pub use io::*;
 
-pub mod readers;
-
 pub mod topicalization;
 pub use topicalization::*;
 

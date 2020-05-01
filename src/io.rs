@@ -127,7 +127,7 @@ pub fn bigram_pmi_to_dpar_pmis(
                                 path.file_stem().unwrap().to_string_lossy().to_string(),
                                 line[2].to_string(),
                             );
-                            writeln!(file, "{}\t{}\t{}\t{}", w1, w2, deprel, pmi);
+                            writeln!(file, "{}\t{}\t{}\t{}", w1, w2, deprel, pmi)?;
                         }
                     }
                 }
@@ -157,7 +157,7 @@ pub fn bigram_pmi_to_dpar_pmis(
                                 path.file_stem().unwrap().to_string_lossy().to_string(),
                                 line[2].to_string(),
                             );
-                            writeln!(file, "{}\t{}\t{}\t{}", w1, w2, deprel, pmi);
+                            writeln!(file, "{}\t{}\t{}\t{}", w1, w2, deprel, pmi)?;
                         }
                     }
                 }
@@ -200,7 +200,7 @@ pub fn bigram_UD_pmi_to_dpar_pmis(
                                     path.file_stem().unwrap().to_string_lossy().to_string(),
                                     line[2].to_string(),
                                 );
-                                writeln!(file, "{}\t{}\t{}\t{}", w1, w2, deprel.replace("/", ":"), pmi);
+                                writeln!(file, "{}\t{}\t{}\t{}", w1, w2, deprel.replace("/", ":"), pmi)?;
                             }
                         }
                     }
@@ -230,7 +230,7 @@ pub fn bigram_UD_pmi_to_dpar_pmis(
                                     path.file_stem().unwrap().to_string_lossy().to_string(),
                                     line[2].to_string(),
                                 );
-                                writeln!(file, "{}\t{}\t{}\t{}", w1, w2, deprel.replace("/", ":"), pmi);
+                                writeln!(file, "{}\t{}\t{}\t{}", w1, w2, deprel.replace("/", ":"), pmi)?;
                             }
                         }
                     }
@@ -276,7 +276,7 @@ pub fn trigram_pmi_to_dpar_pmis(
                                 line[2].to_string(),
                                 line[3].to_string(),
                             );
-                            writeln!(file, "{}\t{}\t{}\t{}\t{}\t{}", w1, w2, w3, d1, d2, pmi);
+                            writeln!(file, "{}\t{}\t{}\t{}\t{}\t{}", w1, w2, w3, d1, d2, pmi)?;
                         }
                     }
                 }
@@ -309,7 +309,7 @@ pub fn trigram_pmi_to_dpar_pmis(
                                 line[2].to_string(),
                                 line[3].to_string(),
                             );
-                            writeln!(file, "{}\t{}\t{}\t{}\t{}\t{}", w1, w2, w3, d1, d2, pmi);
+                            writeln!(file, "{}\t{}\t{}\t{}\t{}\t{}", w1, w2, w3, d1, d2, pmi)?;
                         }
                     }
                 }
@@ -452,4 +452,21 @@ pub fn read_xml(filename: &str, word_event: &str, frame_event: &str) {
             _ => {}
         }
     }
+}
+
+
+/// Format sentence with token at index 'tok_idx' highlighted.
+pub fn print_sentence(input_sent: &Vec<Token>) {
+    for idx in 0..input_sent.len() {
+        print!("{} ", input_sent[idx].form());
+    }
+    println!();
+}
+
+/// Format sentence with token at index 'tok_idx' highlighted.
+pub fn print_sentence_ext(input_sent: &Vec<Token>) {
+    for idx in 0..input_sent.len() {
+        print!("{}_{}_{} ", input_sent[idx].form(), input_sent[idx].head().unwrap(), input_sent[idx].head_rel().unwrap());
+    }
+    println!();
 }

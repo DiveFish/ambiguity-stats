@@ -1,15 +1,11 @@
 extern crate ambiguity_stats;
 extern crate clap;
 extern crate conllx;
-extern crate flate2;
 
 use std::collections::HashMap;
-use std::fs::{self, File};
 
 use ambiguity_stats::*;
 use clap::{App, Arg};
-use flate2::Compression;
-use flate2::write::GzEncoder;
 
 pub fn main() {
     let matches = App::new("ambiguity-stats")
@@ -91,7 +87,6 @@ fn get_inversion_verbs(files: &[String]) {
 
     for file in files {
         let text = read_data(file);
-        let mut idx = 0;
         for sent in text.iter() {
             let (verbs, inv_verbs) = inversion_verbs_content(sent);
             for (verb, inversion_verb) in verbs.iter().zip(inv_verbs.iter()) {

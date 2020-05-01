@@ -56,11 +56,11 @@ pub fn main() {
     for sent in matching_err_sents.iter() {
         println!("{}", sent);
     }
+    */
 
     let acc = (n_ambigs_errs as f32) / ((n_ambigs as f32) / 100.0);
     println!(
         "Filename: {:?}\n# Overall count: {:?}\n# errors: {:?}\n% erroneous: {:?}",
         file_parsed, n_ambigs, n_ambigs_errs, acc
     );
-    */
 }

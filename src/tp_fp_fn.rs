@@ -184,18 +184,18 @@ pub fn inv_acc_comps(
         let token_deprel = token.head_rel().expect("No deprel");
 
         if gold_deprel == "SUBJ" || gold_deprel.starts_with("OBJ") {
-            let mut verb_idx;
-            if (gold_head > 0)
+            //TODO: Replace by output of function verb::contentverb()
+            let verb_idx = if (gold_head > 0)
                 && gold_sent[gold_head - 1]
                 .head_rel()
                 .expect("No deprel")
                 .eq("AUX")
                 {
                     // Reattach auxiliary verb to content verb
-                    verb_idx = gold_sent[gold_head - 1].head().expect("No head");
+                    gold_sent[gold_head - 1].head().expect("No head")
                 } else {
-                verb_idx = gold_head;
-            }
+                gold_head
+            };
 
             if gold_deprel == "SUBJ" {
                 let entry = head_verb_args.entry(verb_idx).or_insert(vec![0; 4]);
@@ -374,18 +374,18 @@ pub fn inv_ud_acc_comps(
         let token_deprel = token.head_rel().expect("No deprel");
 
         if gold_deprel == "nsubj" || gold_deprel.starts_with("ob") || gold_deprel == "iobj" {
-            let mut verb_idx;
-            if (gold_head > 0)
+            //TODO: Replace by output of function verb::contentverb()
+            let verb_idx = if (gold_head > 0)
                 && gold_sent[gold_head - 1]
                 .head_rel()
                 .expect("No deprel")
                 .eq("AUX")
                 {
                     // Reattach auxiliary verb to content verb
-                    verb_idx = gold_sent[gold_head - 1].head().expect("No head");
+                    gold_sent[gold_head - 1].head().expect("No head")
                 } else {
-                verb_idx = gold_head;
-            }
+                gold_head
+            };
 
             if gold_deprel == "nsubj" {
                 let entry = head_verb_args.entry(verb_idx).or_insert(vec![0; 4]);

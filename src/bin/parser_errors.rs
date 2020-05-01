@@ -29,8 +29,7 @@ pub fn main() {
         .get_matches();
 
     let golddatafile = matches.value_of("INPUT_GOLD").unwrap();
-    let parserdatafile = matches.value_of("INPUT_NONGOLD").unwrap();
-    //read_gng_data(golddatafile, parserdatafile);
+    let _parserdatafile = matches.value_of("INPUT_NONGOLD").unwrap();
 
     let mut pos_patterns = LinkedHashMap::new();
     let mut examples = Vec::new();
@@ -140,15 +139,15 @@ pub fn errors(golddata: &[Vec<Token>], parserdata: &[Vec<Token>]) {
             * 100.0;
         let uas = (1.0 - ((all_combined_errors + all_head_errors) as f32 / all_attachments as f32))
             * 100.0;
-        //eprintln!("{:?}\n{:?}", las, uas);
+        eprintln!("{:?}\n{:?}", las, uas);
 
         let error_sum = all_combined_errors + all_head_errors + all_label_errors;
 
         println!(
-            "{}\t{:?}\t{:?}\t{:?}",
-            label, all_combined_errors, all_head_errors, all_label_errors
+            "{}\t{:?}\t{:?}\t{:?}\t{:?}",
+            label, error_sum, all_combined_errors, all_head_errors, all_label_errors
         );
-        //println!("# sents: {}, # of tokens: {}", sent_cnt, token_cnt);
+        println!("# sents: {}, # of tokens: {}", sent_cnt, token_cnt);
 
         let mut wrong_label_vec: Vec<_> = all_wrong_labels.iter().collect();
         wrong_label_vec.sort_by(|a, b| b.1.cmp(&a.1));

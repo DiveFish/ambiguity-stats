@@ -3,9 +3,8 @@ extern crate clap;
 
 use ambiguity_stats::*;
 use clap::{App, Arg};
-use std::fs::{self, File};
-use std::io::{self, BufRead, BufReader};
-use std::path::Path;
+use std::fs::{File};
+use std::io::{BufRead, BufReader};
 
 pub fn main() {
     let matches = App::new("ambiguity-stats")

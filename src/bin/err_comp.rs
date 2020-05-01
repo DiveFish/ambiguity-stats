@@ -5,10 +5,8 @@ extern crate conllx;
 use ambiguity_stats::*;
 
 use std::io::{BufWriter, Write};
-use std::process::Output;
 
 use clap::{App, Arg};
-use conllx::Sentence;
 use std::fs::File;
 
 pub fn main() {

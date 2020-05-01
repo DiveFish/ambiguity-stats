@@ -3,8 +3,8 @@ extern crate clap;
 
 use ambiguity_stats::*;
 use clap::{App, Arg};
-use std::fs::{self, File};
-use std::io::{self, BufRead, BufReader};
+use std::fs::{File};
+use std::io::{BufRead, BufReader};
 
 pub fn main() {
 
@@ -28,10 +28,14 @@ pub fn main() {
 
     let intput_file = matches.value_of("INPUT").unwrap();
     let output_file = matches.value_of("OUTPUT").unwrap();
-
+    let (gold, parsed) = read_gng_data(intput_file, output_file);
+    order_freq_hdt(&gold, &parsed, true, false);
+    //definiteness_ud(&gold, &parsed, "dutch", true, false); // ... language, las, debug
+    /*
     let (triples, properties) = extract_triples(&intput_file);
     let (templates, templates_aux) = generate_templates_dutch();
     sentence_generator(&triples, &properties, &templates, &templates_aux, "Daarom", "Omdat", output_file);
+    */
 }
 
 /// `Properties' includes the property combination, e.g. accusative and ambiguous sentences carry

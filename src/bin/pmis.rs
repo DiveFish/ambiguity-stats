@@ -77,11 +77,11 @@ pub fn main() {
     get_pmi(&focus_words, &context_words, &deprels, input_file);
 }
 
-fn collect_ngrams(files: Vec<String>, filename_template: &str, ngram_size: usize) {
+fn collect_ngrams(files: Vec<String>, filename_template: &str) {
     for file in &files {
         ngrams_to_file(
             filename_template,
-            readers::get_deprel_bigrams(&read_sentences(file)),
+            get_deprel_bigrams(&read_sentences(file)),
         )
         .unwrap();
         println!("Done with file {}", file)

@@ -1,7 +1,6 @@
 extern crate conllx;
 
-use conllx::Token;
-use conllx::Features;
+use conllx::{Features, Token};
 use std::collections::BTreeMap;
 
 pub fn precision(true_pos: f32, false_pos: f32) -> f32 {

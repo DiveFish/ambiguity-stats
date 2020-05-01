@@ -31,7 +31,7 @@ pub fn main() {
         .get_matches();
 
     let input = matches.value_of("INPUT_GOLD").unwrap();
-    let output = matches.value_of("INPUT_NONGOLD").unwrap();
+    let _output = matches.value_of("INPUT_NONGOLD").unwrap();
 
     let mut freq_map: HashMap<String, usize> = HashMap::new();
     let files = get_all_files(input);
