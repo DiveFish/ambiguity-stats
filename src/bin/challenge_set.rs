@@ -29,8 +29,10 @@ pub fn main() {
     let intput_file = matches.value_of("INPUT").unwrap();
     let output_file = matches.value_of("OUTPUT").unwrap();
     let (gold, parsed) = read_gng_data(intput_file, output_file);
-    order_freq_hdt(&gold, &parsed, true, false);
-    //definiteness_ud(&gold, &parsed, "dutch", true, false); // ... language, las, debug
+    //order_freq_ud(&gold, &parsed, "german", false, false);
+    definiteness_ud(&gold, &parsed, "german", false, false); // ... language, las, debug
+    //negated_objs(&gold, &parsed, "UD", "german");
+
     /*
     let (triples, properties) = extract_triples(&intput_file);
     let (templates, templates_aux) = generate_templates_dutch();

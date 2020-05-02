@@ -705,7 +705,7 @@ pub fn inflected_verbs_ud(sent: &Vec<Token>, language: &str) -> HashMap<usize, u
                 content_inflected_verbs.insert(head - 1, i);
             }
         } else if language == "dutch" {
-            if head > 0 && pos.ends_with("pv") && deprel == "aux" {    // Assumes combined UD-HDT PoS tags
+            if head > 0 && pos.ends_with("pv") && deprel == "aux" {    // Used Lassy small PoS tags
                 content_inflected_verbs.insert(head - 1, i);
             }
         }

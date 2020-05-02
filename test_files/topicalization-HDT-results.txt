@@ -1,0 +1,52 @@
+WORD ORDER
+----------
+OSV: die, es, (gegeben) hatte [Dabei kam ...]
+OSV: es, ein, täte [Liebe und ...]
+OSV: was, jemand, (behauptet) hat [Das Papier ...]
+OVS: Papier, habe, ich (gelesen) [Das Papier ...]
+OVSQ: was, sagt, StVZO, ? [Was aber ...]
+SOV: Anti-Listen, Hochkonjunktur, haben [Wie überhaupt ...]
+SOV: Bombardierungen, Ingredienzien, aufzwangen [Unter Wissenschaftlern ...]
+SOV: Bombardierungen, Khmer, aufzwangen [Unter Wissenschaftlern ...]
+SOV: das, Bombardements, (ausgesetzt gewesen) war [Unter Wissenschaftlern ...]
+SOV: das, Macht, hält [Feministische ...]
+SOV: der, Gut, erwirbt [Liebe und ...]
+SOV: es, sich, lebt [Feministische ...]
+SOV: Kommunisten, Bauern, (gewinnen) konnten [Unter Wissenschaftlern ...]
+SOV: sie, ihnen, führten [Unter Wissenschaftlern ...]
+SOV: sie, sie, (überzeugen) konnten [Unter Wissenschaftlern ...]
+SOV: sie, Zerstörungen, führten [Unter Wissenschaftlern ...]
+SVO: Frauen, erleben, Vollrausch [Frauen erleben ...]
+SVO: Kirche, wird, sich (abfinden müssen) [Die ... Kirche ...]
+SVO: Steffi, unterliegt, Sabatini [Steffi Graf ...]
+SVO: Unternehmen, erwarb, Ruf [Das Unternehmen ...]
+SVO: Unternehmen, erwarb, sich [Das Unternehmen ...]
+SOV: er, alles, demoliert [Liebe und ...]
+VSO: beauftragte, Rebmann, Beamten [Dabei kam ...]
+VSO: bietet, Öffentlichkeit, ihnen [Frauen erleben ...]
+VSO: bietet, Öffentlichkeit, Orte [Frauen erleben ...]
+VSOQ: will, er, Signal (geben), ? [Und war ...]
+
+VSO: 3 > KORREKT
+VOS: 0 > KORREKT
+VSOQ: 1 > KORREKT
+VOSQ: 0 > KORREKT
+SVO: 5 > KORREKT
+OVS: 1 (OVSQ: 1, wird in Analyse hier hinzugezählt) > KORREKT
+SOV: 12 > KORREKT
+OSV: 3 > KORREKT
+
+
+DEFINITENESS
+-----------
+S-def,O-def;SO: Bombardierungen, Ingredienzien, aufzwangen [Unter Wissenschaftlern ...]
+S-def,O-def,SO: Bombardierungen, Khmer, aufzwangen [Unter Wissenschaftlern ...]
+S-def,O-def,SO: Unternehmen, erwarb, Ruf [Das Unternehmen ...]
+S-def,O-indef,SO: bietet, Öffentlichkeit, Orte [Frauen erleben ...]
+S-def,O-indef,SO: Anti-Listen, Hochkonjunktur, haben [Wie überhaupt ...]
+S-indef,O-def,SO: Frauen, erleben, Vollrausch [Frauen erleben ...]
+
+S-def,O-def: 3 > KORREKT
+S-def,O-indef: 2 > KORREKT
+S-indef,O-def: 1 > KORREKT
+S-indef,O-indef: 0 > KORREKT

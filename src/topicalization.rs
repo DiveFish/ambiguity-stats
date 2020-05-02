@@ -12,7 +12,7 @@ use io::{print_sentence, print_sentence_ext};
 /// LK[V]MF[OS]
 /// MF[SO]VC[V]
 /// MF[OS]VC[V]
-pub fn order_freq_hdt(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, las: bool, debug: bool) {
+pub fn order_freq_hdt(gold: &Vec<Vec<Token>>, parsed: &Vec<Vec<Token>>, _language: &str, las: bool, debug: bool) {
 
     let debug_sent = false;
     let mut num_hits = 0;
@@ -138,7 +138,7 @@ pub fn order_freq_hdt(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, las: boo
     )
 }
 
-pub fn order_freq_ud(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, language: &str, las: bool, debug: bool) {
+pub fn order_freq_ud(gold: &Vec<Vec<Token>>, parsed: &Vec<Vec<Token>>, language: &str, las: bool, debug: bool) {
 
     let mut num_hits = 0;
 
@@ -252,7 +252,7 @@ pub fn order_freq_ud(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, language:
             &mut osv, &mut osv_err
         )
     }
-    println!("UD");
+    println!("UD - {}", language);
     print_order_res(
         num_hits, las,
         svo, svo_err,
@@ -408,7 +408,9 @@ fn print_order_res(
 /// 2. subject definite - object indefinite
 /// 3. subject indefinite - object definite
 /// 4. subject indefinite - object indefinite
-pub fn definiteness_hdt(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, _language: &str, las: bool, debug: bool) {
+/// Currently, definite is "der, die, das" and indefinite "ein(e)", the rest is summed up as "other"
+/// and has not been included in the final statistics.
+pub fn definiteness_hdt(gold: &Vec<Vec<Token>>, parsed: &Vec<Vec<Token>>, _language: &str, las: bool, debug: bool) {
 
     let mut num_hits = 0;
 
@@ -430,7 +432,6 @@ pub fn definiteness_hdt(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, _langu
     let mut sindef_oindef_os_err = 0;
 
     for (mut parsed_sent, mut gold_sent) in parsed.iter().zip(gold.iter()) {
-
         let gold_content_verbs = content_verbs_hdt(&mut gold_sent);
         let mut head_verb_args = HashMap::new();
 
@@ -456,11 +457,21 @@ pub fn definiteness_hdt(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, _langu
                     let token_head_head = token_head_token.head().expect("No head");
 
                     if gold_deprel == "DET" && (gold_head_deprel == "SUBJ" || gold_head_deprel == "OBJA" || gold_head_deprel == "OBJD") {
+                        /*
                         let def = if gold_lemma == "der" || gold_lemma == "die" || gold_lemma == "das" || gold_lemma == "der|die|das" || gold_pos == "PDAT" {
                             true
                         } else {
                             //if lemma == "eine" || lemma == "ein" || pos == "PIDAT" || pos == "PIAT" || pos == "PWAT" {
                             false
+                        };
+                        */
+                        // 1: Definite (der, die, das) , 2: Indefinite (ein, eine), 3: Other
+                        let def = if gold_lemma == "der" || gold_lemma == "die" || gold_lemma == "das" || gold_lemma == "der|die|das" {
+                            1
+                        } else if gold_lemma == "ein" || gold_lemma == "eine" {
+                            2
+                        } else {
+                            3
                         };
                         let mut verb_idx = gold_head_head - 1;
                         if let Some(content_verb_idx) = gold_content_verbs.get(&verb_idx) {
@@ -468,47 +479,57 @@ pub fn definiteness_hdt(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, _langu
                         };
 
                         if gold_head_deprel == "SUBJ" {
-                            let mut entry = head_verb_args.entry(verb_idx + 1).or_insert(vec![0; 7]);
-                            add_def_indef_entry(def, &mut entry, 0, 1, gold_head);
-                            if gold_head_deprel != token_head_deprel || gold_head_head != *&token_head_head {
-                                entry[6] += 1;
+                            let mut entry = head_verb_args.entry(verb_idx+1).or_insert(vec![0; 10]);
+                            add_def_indef_entry(def, &mut entry, 0, 1, 2, gold_head);
+                            if def < 3 {
+                                if gold_head_deprel != token_head_deprel || gold_head_head != *&token_head_head {
+                                    entry[9] += 1;
+                                }
                             }
                         } else if gold_head_deprel == "OBJA" || gold_head_deprel == "OBJD" {
-                            let mut entry = head_verb_args.entry(verb_idx + 1).or_insert(vec![0; 7]);
-                            if entry[2] == 0 && entry[3] == 0 {
-                                add_def_indef_entry(def, &mut entry, 2, 3, gold_head);
+                            let mut entry = head_verb_args.entry(verb_idx+1).or_insert(vec![0; 10]);
+                            if entry[2] == 0 && entry[3] == 0 && entry[4] == 0 {
+                                add_def_indef_entry(def, &mut entry, 3, 4, 5, gold_head);
                             } else {
-                                add_def_indef_entry(def, &mut entry, 4, 5, gold_head);
+                                add_def_indef_entry(def, &mut entry, 6, 7, 8, gold_head);
                             }
-                            if gold_head_deprel != token_head_deprel || gold_head_head != *&token_head_head {
-                                entry[6] += 1;
+                            if def < 3 {
+                                if gold_head_deprel != token_head_deprel || gold_head_head != *&token_head_head {
+                                    entry[9] += 1;
+                                }
                             }
                         }
-                    } else if gold_pos == "NN" && (gold_deprel == "SUBJ" || gold_deprel == "OBJA" || gold_deprel == "OBJD")  {    // Plural nouns and proper names
-
+                    } else if gold_pos == "NN" && (gold_deprel == "SUBJ" || gold_deprel == "OBJA" || gold_deprel == "OBJD")  {    // Commmon nouns without article (plural, mass nouns)
                         let mut verb_idx = gold_head - 1;
                         if let Some(content_verb_idx) = gold_content_verbs.get(&verb_idx) {
                             verb_idx = *content_verb_idx;
                         };
+                        let def = 2;
                         if gold_deprel == "SUBJ" {
-                            let mut entry = head_verb_args.entry(verb_idx + 1).or_insert(vec![0; 7]);
-                            if entry[0] == 0 && entry[1] == 0 {
-                                add_def_indef_entry(false, &mut entry, 0, 1, i + 1);
-                                if gold_deprel != token_deprel || gold_head != *&token_head {
-                                    entry[6] += 1;
+                            let mut entry = head_verb_args.entry(verb_idx + 1).or_insert(vec![0; 10]);
+                            if entry[0] == 0 && entry[1] == 0 && entry[2] == 0 {
+                                add_def_indef_entry(def, &mut entry, 0, 1, 2, i+1);
+                                if def < 3 {
+                                    if gold_deprel != token_deprel || gold_head != *&token_head {
+                                        entry[9] += 1;
+                                    }
                                 }
                             }
                         } else if gold_deprel == "OBJA" || gold_deprel == "OBJD" {
-                            let mut entry = head_verb_args.entry(verb_idx + 1).or_insert(vec![0; 7]);
-                            if entry[2] == 0 && entry[3] == 0 {
-                                add_def_indef_entry(false, &mut entry, 2, 3, i + 1);
-                                if gold_deprel != token_deprel || gold_head != *&token_head {
-                                    entry[6] += 1;
+                            let mut entry = head_verb_args.entry(verb_idx + 1).or_insert(vec![0; 10]);
+                            if entry[3] == 0 && entry[4] == 0  && entry[5] == 0 {
+                                add_def_indef_entry(def, &mut entry, 3, 4, 5, i+1);
+                                if def < 3 {
+                                    if gold_deprel != token_deprel || gold_head != *&token_head {
+                                        entry[9] += 1;
+                                    }
                                 }
-                            } else if entry[2] != i+1 && entry[3] != i+1 && entry[4] == 0 && entry[5] == 0 {
-                                add_def_indef_entry(false, &mut entry, 4, 5, i + 1);
-                                if gold_deprel != token_deprel || gold_head != *&token_head {
-                                    entry[6] += 1;
+                            } else if (entry[3] != i+1 && entry[4] != i+1 && entry[5] != i+1) && entry[6] == 0 && entry[7] == 0 && entry[8] == 0 {
+                                add_def_indef_entry(def, &mut entry, 6, 7, 8, i+1);
+                                if def < 3 {
+                                    if gold_deprel != token_deprel || gold_head != *&token_head {
+                                        entry[9] += 1;
+                                    }
                                 }
                             }
                         }
@@ -542,7 +563,7 @@ pub fn definiteness_hdt(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, _langu
     );
 }
 
-pub fn definiteness_ud(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, language: &str, las: bool, debug: bool) {
+pub fn definiteness_ud(gold: &Vec<Vec<Token>>, parsed: &Vec<Vec<Token>>, language: &str, las: bool, debug: bool) {
 
     let german = language == "german";
     let dutch = language == "dutch";
@@ -602,6 +623,7 @@ pub fn definiteness_ud(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, languag
 
                     if gold_deprel == "det" && (gold_head_deprel == "nsubj" || gold_head_deprel == "obj" || gold_head_deprel == "iobj") {
 
+                        /*
                         let def = if dutch && (gold_pos == "DET-bep" || gold_pos == "DET-aanw") {
                             true
                         } else if dutch {
@@ -614,52 +636,84 @@ pub fn definiteness_ud(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, languag
                             eprintln!("Again: Choose a language!");
                             false
                         };
+                        */
+
+                        let def = if dutch && (gold_lemma == "de" || gold_lemma == "het") {
+                            1
+                        } else if dutch && gold_lemma == "een" {
+                            2
+                        } else if dutch {
+                            3
+                        } else if german && (gold_lemma == "der" || gold_lemma == "die" || gold_lemma == "das" || gold_lemma == "der|die|das") {
+                            1
+                        } else if german && (gold_lemma == "ein" || gold_lemma == "eine") {
+                            2
+                        } else if german {
+                            3
+                        } else {
+                            eprintln!("Again: Choose a language!");
+                            0
+                        };
 
                         let verb_idx = gold_head_head;
                         if gold_head_deprel == "nsubj" {
-                            let mut entry = head_verb_args.entry(verb_idx).or_insert(vec![0; 7]);
-                            add_def_indef_entry(def, &mut entry, 0, 1, gold_head);
-                            if gold_head_deprel != token_head_deprel || gold_head_head != *&token_head_head {
-                                entry[6] += 1;
+                            let mut entry = head_verb_args.entry(verb_idx).or_insert(vec![0; 10]);
+                            add_def_indef_entry(def, &mut entry, 0, 1, 2, gold_head);
+                            if def < 3 {
+                                if gold_head_deprel != token_head_deprel || gold_head_head != *&token_head_head {
+                                    entry[9] += 1;
+                                }
                             }
                         } else if gold_head_deprel == "obj" {
-                            let mut entry = head_verb_args.entry(verb_idx).or_insert(vec![0; 7]);
-                            add_def_indef_entry(def, &mut entry, 2, 3, gold_head);
-                            if gold_head_deprel != token_head_deprel || gold_head_head != *&token_head_head {
-                                entry[6] += 1;
+                            let mut entry = head_verb_args.entry(verb_idx).or_insert(vec![0; 10]);
+                            add_def_indef_entry(def, &mut entry, 3, 4, 5, gold_head);
+                            if def < 3 {
+                                if gold_head_deprel != token_head_deprel || gold_head_head != *&token_head_head {
+                                    entry[9] += 1;
+                                }
                             }
                         } else if gold_head_deprel == "iobj" {
-                            let mut entry = head_verb_args.entry(verb_idx).or_insert(vec![0; 7]);
-                            add_def_indef_entry(def, &mut entry, 4, 5, gold_head);
-                            if gold_head_deprel != token_head_deprel || gold_head_head != *&token_head_head {
-                                entry[6] += 1;
+                            let mut entry = head_verb_args.entry(verb_idx).or_insert(vec![0; 10]);
+                            add_def_indef_entry(def, &mut entry, 6, 7, 8, gold_head);
+                            if def < 3 {
+                                if gold_head_deprel != token_head_deprel || gold_head_head != *&token_head_head {
+                                    entry[9] += 1;
+                                }
                             }
                         }
-                    } else if gold_pos.starts_with("NOUN") && (gold_deprel == "nsubj" || gold_deprel == "obj" || gold_deprel == "iobj")  {    // Plural nouns and proper names
+                    } else if gold_pos.starts_with("NOUN") && (gold_deprel == "nsubj" || gold_deprel == "obj" || gold_deprel == "iobj")  {    // Plural nouns
 
                         let mut verb_idx = gold_head - 1;
+                        let def = 2;
+
                         if gold_deprel == "nsubj" {
-                            let mut entry = head_verb_args.entry(verb_idx + 1).or_insert(vec![0; 7]);
-                            if entry[0] == 0 && entry[1] == 0 {
-                                add_def_indef_entry(false, &mut entry, 0, 1, i + 1);
-                                if gold_deprel != token_deprel || gold_head != *&token_head {
-                                    entry[6] += 1;
+                            let mut entry = head_verb_args.entry(verb_idx + 1).or_insert(vec![0; 10]);
+                            if entry[0] == 0 && entry[1] == 0 && entry[2] == 0 {
+                                add_def_indef_entry(def, &mut entry, 0, 1, 2, i + 1);
+                                if def < 3 {
+                                    if gold_deprel != token_deprel || gold_head != *&token_head {
+                                        entry[9] += 1;
+                                    }
                                 }
                             }
                         } else if gold_deprel == "obj" {
-                            let mut entry = head_verb_args.entry(verb_idx + 1).or_insert(vec![0; 7]);
-                            if entry[2] == 0 && entry[3] == 0 {
-                                add_def_indef_entry(false, &mut entry, 2, 3, i + 1);
-                                if gold_deprel != token_deprel || gold_head != *&token_head {
-                                    entry[6] += 1;
+                            let mut entry = head_verb_args.entry(verb_idx + 1).or_insert(vec![0; 10]);
+                            if entry[3] == 0 && entry[4] == 0 && entry[5] == 0 {
+                                add_def_indef_entry(def, &mut entry, 3, 4, 5, i + 1);
+                                if def < 3 {
+                                    if gold_deprel != token_deprel || gold_head != *&token_head {
+                                        entry[9] += 1;
+                                    }
                                 }
                             }
                         } else if gold_deprel == "iobj" {
-                            let mut entry = head_verb_args.entry(verb_idx + 1).or_insert(vec![0; 7]);
-                            if entry[4] == 0 && entry[5] == 0 {
-                                add_def_indef_entry(false, &mut entry, 4, 5, i + 1);
-                                if gold_deprel != token_deprel || gold_head != *&token_head {
-                                    entry[6] += 1;
+                            let mut entry = head_verb_args.entry(verb_idx + 1).or_insert(vec![0; 10]);
+                            if entry[6] == 0 && entry[7] == 0 && entry[8] == 0 {
+                                add_def_indef_entry(def, &mut entry, 6, 7, 8, i + 1);
+                                if def < 3 {
+                                    if gold_deprel != token_deprel || gold_head != *&token_head {
+                                        entry[9] += 1;
+                                    }
                                 }
                             }
                         }
@@ -693,11 +747,13 @@ pub fn definiteness_ud(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, languag
     );
 }
 
-fn add_def_indef_entry(def: bool, entry: &mut Vec<usize>, idx_def: usize, idx_indef: usize, val: usize) {
-    if def {
+fn add_def_indef_entry(def: usize, entry: &mut Vec<usize>, idx_def: usize, idx_indef: usize, idx_other: usize, val: usize) {
+    if def == 1 {
         entry[idx_def] = val;
-    } else {
+    } else if def == 2 {
         entry[idx_indef] = val;
+    } else if def == 3 {
+        entry[idx_other] = val;
     }
 }
 
@@ -715,16 +771,19 @@ fn get_def_distribution(
     for (head_verb_idx, verb_args) in head_verb_args.iter() {
         let subj_def_idx = verb_args[0];
         let subj_indef_idx = verb_args[1];
-        let obj_def_idx = verb_args[2];
-        let obj_indef_idx = verb_args[3];
-        let obj2_def_idx = verb_args[4];
-        let obj2_indef_idx = verb_args[5];
-        let err_cnt = verb_args[6];
+        let subj_other_idx = verb_args[2];
+        let obj_def_idx = verb_args[3];
+        let obj_indef_idx = verb_args[4];
+        let obj_other_idx = verb_args[5];
+        let obj2_def_idx = verb_args[6];
+        let obj2_indef_idx = verb_args[7];
+        let obj2_other_idx = verb_args[8];
+        let err_cnt = verb_args[9];
 
         if (subj_def_idx > 0 || subj_indef_idx > 0 ) && (obj_def_idx > 0 || obj_indef_idx > 0) {
             *num_hits += 1;
             if debug {
-                eprintln!("{} {} {} {} {} {}(2) {}", subj_def_idx, subj_indef_idx, obj_def_idx, obj_indef_idx, obj2_def_idx, obj2_indef_idx, err_cnt);
+                eprintln!("{} {} {} {} {} {} {}(2) {}(2) {}(2) {}", subj_def_idx, subj_indef_idx, subj_other_idx, obj_def_idx, obj_indef_idx, obj_other_idx, obj2_def_idx, obj2_indef_idx, obj2_other_idx, err_cnt);
             }
 
             // Subject-object pairs
@@ -872,4 +931,128 @@ fn print_def_res(
                  sindef_oindef_os
         );
     }
+}
+
+pub fn negated_objs(gold: &Vec<Vec<Token>>, parsed: &Vec<Vec<Token>>, annotation: &str, language: &str) {
+
+    let mut o = 0;
+    let mut o_neg = 0;
+    let mut o_err = 0;
+    let mut o_neg_err = 0;
+
+    for (parsed_sent, gold_sent) in parsed.iter().zip(gold.iter()) {
+        for i in 0..gold_sent.len() {
+            let gold_token = &gold_sent[i];
+            let gold_deprel = gold_token.head_rel().expect("No deprel");
+            let gold_head = gold_token.head().expect("No head");
+
+            let parsed_token = &parsed_sent[i];
+            let parsed_deprel = parsed_token.head_rel().expect("No deprel");
+            let parsed_head = parsed_token.head().expect("No head");
+
+            if gold_head > 0 {
+                let gold_token_head = &gold_sent[gold_head-1];
+                let gold_head_deprel = gold_token_head.head_rel().expect("No deprel");
+                let gold_head_head = gold_token_head.head().expect("No head");
+
+                if annotation == "HDT" {
+
+                    if let Some(gold_lemma) = gold_token.lemma() {
+                        if gold_deprel == "DET" &&
+                            (gold_head_deprel == "OBJA" || gold_head_deprel == "OBJD") &&
+                            (gold_lemma == "kein" || gold_lemma == "keine" || gold_lemma == "kein|keine") {
+                            o_neg += 1;
+                            if parsed_head == 0 {
+                                o_neg_err += 1;
+                            } else {
+                                let parsed_token_head = &parsed_sent[parsed_head - 1];
+                                let parsed_head_deprel = parsed_token_head.head_rel().expect("No deprel");
+                                let parsed_head_head = parsed_token_head.head().expect("No head");
+                                if gold_head_deprel != parsed_head_deprel || gold_head_head != parsed_head_head {
+                                    o_neg_err += 1;
+                                }
+                            }
+                        } else if gold_deprel == "DET" && (gold_head_deprel == "OBJA" || gold_head_deprel == "OBJD") {
+                            o += 1;
+                            if parsed_head == 0 {
+                                o_err += 1;
+                            } else {
+                                let parsed_token_head = &parsed_sent[parsed_head - 1];
+                                let parsed_head_deprel = parsed_token_head.head_rel().expect("No deprel");
+                                let parsed_head_head = parsed_token_head.head().expect("No head");
+                                if gold_head_deprel != parsed_head_deprel || gold_head_head != parsed_head_head {
+                                    o_err += 1;
+                                }
+                            }
+                        }
+                    }
+                } else if annotation == "UD" {
+                    if language == "german" {
+                        if gold_deprel == "det:neg" && (gold_head_deprel == "obj" || gold_head_deprel == "iobj") {
+                            o_neg += 1;
+                            if parsed_head == 0 {
+                                o_neg_err += 1;
+                            } else {
+                                let parsed_token_head = &parsed_sent[parsed_head - 1];
+                                let parsed_head_deprel = parsed_token_head.head_rel().expect("No deprel");
+                                let parsed_head_head = parsed_token_head.head().expect("No head");
+                                if gold_head_deprel != parsed_head_deprel || gold_head_head != parsed_head_head {
+                                    o_neg_err += 1;
+                                }
+                            }
+                        } else if gold_deprel == "det" && (gold_head_deprel == "obj" || gold_head_deprel == "iobj") {
+                            o += 1;
+                            if parsed_head == 0 {
+                                o_err += 1;
+                            } else {
+                                let parsed_token_head = &parsed_sent[parsed_head - 1];
+                                let parsed_head_deprel = parsed_token_head.head_rel().expect("No deprel");
+                                let parsed_head_head = parsed_token_head.head().expect("No head");
+                                if gold_head_deprel != parsed_head_deprel || gold_head_head != parsed_head_head {
+                                    o_err += 1;
+                                }
+                            }
+                        }
+                    } else if language == "dutch" {
+
+                        if let Some(gold_lemma) = gold_token.lemma() {
+                            if gold_deprel == "det" &&
+                                (gold_head_deprel == "obj" || gold_head_deprel == "iobj") &&
+                                gold_lemma == "geen" {
+                                o_neg += 1;
+                                if parsed_head == 0 {
+                                    o_neg_err += 1;
+                                } else {
+                                    let parsed_token_head = &parsed_sent[parsed_head - 1];
+                                    let parsed_head_deprel = parsed_token_head.head_rel().expect("No deprel");
+                                    let parsed_head_head = parsed_token_head.head().expect("No head");
+                                    if gold_head_deprel != parsed_head_deprel || gold_head_head != parsed_head_head {
+                                        o_neg_err += 1;
+                                    }
+                                }
+                            } else if gold_deprel == "det" && (gold_head_deprel == "obj" || gold_head_deprel == "iobj") {
+                                o += 1;
+                                if parsed_head == 0 {
+                                    o_err += 1;
+                                } else {
+                                    let parsed_token_head = &parsed_sent[parsed_head - 1];
+                                    let parsed_head_deprel = parsed_token_head.head_rel().expect("No deprel");
+                                    let parsed_head_head = parsed_token_head.head().expect("No head");
+                                    if gold_head_deprel != parsed_head_deprel || gold_head_head != parsed_head_head {
+                                        o_err += 1;
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        eprintln!("Choose one of the following languages: german or dutch, {} invalid", language);
+                    }
+                } else {
+                    eprintln!("Choose one of the following annotation schemes: HDT or UD, {} invalid", annotation);
+                }
+            }
+        }
+    }
+    println!("Object count,Negated object count,Object errors,Negated object errors");
+    println!("{},{},{},{}", o, o_neg, o_err, o_neg_err);
 }

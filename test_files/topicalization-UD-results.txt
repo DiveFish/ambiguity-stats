@@ -1,0 +1,54 @@
+OSV: die, Mann, (ertragen) kann [Feministische ...]
+OSV: die, Martin, (anbringen) ließ [Feministische ...]
+OSV: die, es, (gegeben) hatte [Dabei kam ...]
+OSV: was, jemand, (behauptet) hat [Das Papier ...]
+OVS: Papier, habe, ich (gelesen) [Das Papier ...]
+OVS: was, sagt, StVZO, ? [Was aber ...]
+SOV: das, Macht, hält [Feministische ...]
+SOV: es, sich, lebt [Feministische ...]
+SOV: Anti-Listen, Hochkonkunktur, haben [Wie überhaupt ...]
+SOV: der, Gut, erwirbt [Liebe und ...]
+OSV: es, ein, täte [Liebe und ...]
+SOV: der, Bäume, (fallen) lässt [Liebe und ...]
+SOV: er, alles, demoliert [Liebe und ...]
+VSO: Sie, sich, manipulieren [Trotzdem lassen ...]
+SOV: Bombardierungen, Ingredienzien, aufzwangen [Unter Wissenschaftlern ...]
+SOV: Bombardierungen, Khmer, aufzwangen [Unter Wissenschaftlern ...]
+SOV: das, Bombardements, (ausgesetzt gewesen) war [Unter Wissenschaftlern ...]
+SOV: Kommunisten, Bauern, (gewinnen) konnten [Unter Wissenschaftlern ...]
+SOV: sie, ihnen, führten [Unter Wissenschaftlern ...]
+SOV: sie, Zerstörungen, führten [Unter Wissenschaftlern ...]
+SOV: sie, sie, (überzeugen) konnten [Unter Wissenschaftlern ...]
+SVO: Frauen, erleben, Vollrausch [Frauen erleben ...]
+SVO: Steffi, unterliegt, Sabatini [Steffi Graf ...]
+SVO: Unternehmen, erwarb, Ruf [Das Unternehmen ...]
+SVO: Unternehmen, erwarb, sich [Das Unternehmen ...]
+SVO: Kirche, wird, sich (abfinden müssen) [Die Kirche ...]
+VSO: beuaftragte, Rebmann, Beamten [Dabei kam ...]
+VSO: bietet, Öffentlichkeit, ihnen [Frauen erleben ...]
+VSO: bietet, Öffentlichkeit, Orte [Frauen erleben ...]
+VSOQ: will, er, Signal (geben), ? [Und war ...]
+
+5	SVO > KORREKT
+2	OVS > KORREKT
+4	VSO > KORREKT
+0	VOS > KORREKT
+13	SOV > KOREEKT
+5	OSV > KORREKT
+1   VSOQ > KORREKT
+SUMME: 30
+
+
+DEFINITENESS
+-----------
+S-def,O-def;SO: Bombardierungen, Ingredienzien, aufzwangen [Unter Wissenschaftlern ...]
+S-def,O-def,SO: Bombardierungen, Khmer, aufzwangen [Unter Wissenschaftlern ...]
+S-def,O-def,SO: Unternehmen, erwarb, Ruf [Das Unternehmen ...]
+S-def,O-indef,SO: bietet, Öffentlichkeit, Orte [Frauen erleben ...]
+S-def,O-indef,SO: Anti-Listen, Hochkonjunktur, haben [Wie überhaupt ...]
+S-indef,O-def,SO: Frauen, erleben, Vollrausch [Frauen erleben ...]
+
+S-def,O-def: 3 >
+S-def,O-indef: 2 >
+S-indef,O-def: 1 >
+S-indef,O-indef: 0 >
