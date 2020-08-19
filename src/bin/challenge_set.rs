@@ -27,7 +27,7 @@ pub fn main() {
         .get_matches();
 
     let input_file = matches.value_of("INPUT").unwrap();
-    //let output_file = matches.value_of("OUTPUT").unwrap();
+    let output_file = matches.value_of("OUTPUT").unwrap();
 
     //let (gold, parsed) = read_gng_data(input_file, output_file);
     //order_freq_ud(&gold, &parsed, "german", false, false);
@@ -35,11 +35,11 @@ pub fn main() {
     //negated_objs(&gold, &parsed, "UD", "german");
 
     let input = read_data(input_file);
-    filter_gold(input, &[&"opron".to_string(),&"invan".to_string(),&"psy".to_string()]);
-    //let (triples, properties) = extract_sent_parts(&input_file);
+    //filter_gold(input, &[&"opron".to_string(),&"invan".to_string(),&"psy".to_string()]);
+    let (triples, properties) = extract_sent_parts(&input_file);
     // GERMAN
-    //let (templates, templates_aux, templates_pp, templates_aux_pp) = generate_templates_german();
-    //sentence_generator(&triples, &properties, &templates, &templates_aux, &templates_pp, &templates_aux_pp, "Deshalb", "Weil", output_file);
+    let (templates, templates_aux, templates_pp, templates_aux_pp) = generate_templates_german();
+    sentence_generator(&triples, &properties, &templates, &templates_aux, &templates_pp, &templates_aux_pp, "Deshalb", "Weil", output_file);
     // DUTCH
     //let (templates, templates_aux, templates_pp) = generate_templates_dutch();
     //sentence_generator(&triples, &properties, &templates, &templates_aux, templates_pp, "Daarom", "Omdat", output_file);
@@ -58,15 +58,15 @@ fn extract_sent_parts(file: &str) -> (Vec<Vec<String>>, Vec<String>) {
         l = l.trim().to_string();
         let line = l.split("\t").collect::<Vec<_>>();
 
-        // Standard order: S V O (VAUX)(PP) when input is SVO or SV_auxOV or SVOPP or SV_auxOPP
-        if line.len() == 7 {    // AUX and PP
+        // Standard order: S V O (VAUX)(PP) when input is S V O or S V_aux O V or S V O PP or S V_aux O PP
+        if line.len() == 7 {    // Sentence contains AUX and PP
             sent_parts.push(vec![line[0].to_owned(), line[2].to_owned(), line[5].to_owned(), line[4].to_owned(), line[3].to_owned(), line[6].to_owned()]);
             properties.push(line[1].to_owned());
         } else if line.len() == 6 {
-            if line[5].split(" ").collect::<Vec<_>>().len() > 1 {  // PP
+            if line[5].split(" ").collect::<Vec<_>>().len() > 1 {  // Sentence contains PP
                 sent_parts.push(vec![line[0].to_owned(), line[2].to_owned(), line[3].to_owned(), line[4].to_owned(), line[5].to_owned()]);
                 properties.push(line[1].to_owned());
-            } else {    // AUX
+            } else {    // Sentence contains AUX
                 sent_parts.push(vec ! [line[0].to_owned(), line[2].to_owned(), line[5].to_owned(), line[4].to_owned(), line[3].to_owned()]);
                 properties.push(line[1].to_owned());
             }
