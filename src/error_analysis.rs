@@ -50,9 +50,9 @@ pub fn comp_pp_err_sents(
 /// Compare which inverison errors are particular to specific models and which
 /// errors are made by two or all models.
 pub fn comp_inv_err_sents(
+    gold: &Vec<Vec<Token>>,
     input_dep: &Vec<Vec<Token>>,
     input_pmi: &Vec<Vec<Token>>,
-    gold: &Vec<Vec<Token>>,
 ) -> (Vec<Vec<String>>, Vec<Vec<String>>, Vec<Vec<String>>) {
     assert_eq!(input_dep.len(), input_pmi.len());
     assert_eq!(input_dep.len(), gold.len());

@@ -235,7 +235,7 @@ pub fn ccrawl_triples(text: &Vec<Vec<Token>>, lemma: bool, output_filename: &str
             }
         }
     }
-    encoded_file.finish();
+    let _ = encoded_file.finish();
 }
 
 pub fn inversion_verbs_content(gold_sent: &[Token]) -> (Vec<String>, Vec<String>) {
@@ -351,11 +351,11 @@ pub fn inversion_verbs_content(gold_sent: &[Token]) -> (Vec<String>, Vec<String>
 /// Collect all verbs which take part in inversion. As object consider
 /// only the direct object that is closest to the main verb.
 /// For NoStaD, change pos() to cpos()
-pub fn inversion_verbs(gold_sent: &[Token]) -> (Vec<String>, Vec<String>) {
+pub fn inversion_verbs(sent: &[Token]) -> (Vec<String>, Vec<String>) {
     let mut head_verb_args = HashMap::new();
 
-    for i in 1..gold_sent.len() {
-        let gold_token = &gold_sent[i];
+    for i in 1..sent.len() {
+        let gold_token = &sent[i];
         let mut main_verb_idx = 0;
 
         if gold_token.head_rel().is_some() && gold_token.head().is_some() {
@@ -367,10 +367,10 @@ pub fn inversion_verbs(gold_sent: &[Token]) -> (Vec<String>, Vec<String>) {
                 let mut verb_idx;
                 if (gold_head > 0)
                     &&
-                    gold_sent[gold_head - 1].head_rel().is_some()
+                    sent[gold_head - 1].head_rel().is_some()
                     &&
                     (
-                        gold_sent[gold_head - 1]
+                        sent[gold_head - 1]
                             .head_rel()
                             .expect("No deprel")
                             .eq("AUX")
@@ -381,7 +381,7 @@ pub fn inversion_verbs(gold_sent: &[Token]) -> (Vec<String>, Vec<String>) {
                     )
                     {
                         // Reattach auxiliary verb to content verb
-                        verb_idx = gold_sent[gold_head - 1].head().expect("No head");
+                        verb_idx = sent[gold_head - 1].head().expect("No head");
                         main_verb_idx = gold_head;
                     } else {
                     verb_idx = gold_head;
@@ -414,7 +414,7 @@ pub fn inversion_verbs(gold_sent: &[Token]) -> (Vec<String>, Vec<String>) {
     for (verb_idx, verb_args) in head_verb_args.iter() {
         let subj_idx = verb_args[0];
         let obj_idx = verb_args[1];
-        let verb = gold_sent[*verb_idx - 1].clone();
+        let verb = sent[*verb_idx - 1].clone();
         let mut verb_lemma = verb.lemma().clone();
 
         if verb_lemma.is_some() && verb.pos().expect("No PoS").starts_with("V") {
@@ -449,15 +449,15 @@ pub fn inversion_verbs(gold_sent: &[Token]) -> (Vec<String>, Vec<String>) {
                 inversion_verbs.push("UNKNOWN".to_string());
             }
 
-        } else if verb.head().is_some() && verb.head().expect("No head") > 0 && gold_sent[verb.head().expect("No head") - 1].lemma().is_some() {
+        } else if verb.head().is_some() && verb.head().expect("No head") > 0 && sent[verb.head().expect("No head") - 1].lemma().is_some() {
 
-            if gold_sent[verb.head().expect("No head") - 1].pos().expect("No PoS").starts_with("V") { // Filter non-verbs
+            if sent[verb.head().expect("No head") - 1].pos().expect("No PoS").starts_with("V") { // Filter non-verbs
 
-                verbs.push(gold_sent[verb.head().expect("No head") - 1].lemma().unwrap().to_string().to_lowercase());
+                verbs.push(sent[verb.head().expect("No head") - 1].lemma().unwrap().to_string().to_lowercase());
 
                 // Clause has a subject and object where object precedes subject
                 if subj_idx > 0 && obj_idx > 0 && obj_idx < subj_idx {
-                    inversion_verbs.push(gold_sent[verb.head().expect("No head") - 1].lemma().unwrap().to_string().to_lowercase());
+                    inversion_verbs.push(sent[verb.head().expect("No head") - 1].lemma().unwrap().to_string().to_lowercase());
                 } else {
                     inversion_verbs.push("UNKNOWN".to_string());
                 }
@@ -470,12 +470,12 @@ pub fn inversion_verbs(gold_sent: &[Token]) -> (Vec<String>, Vec<String>) {
 
 /// Count passive or auxiliary verbs in a sentence. Set `aux_pass_marker' to "aux" for auxiliaries,
 /// to "passiv" for passives.
-pub fn aux_pass_count(gold_sent: &[Token], counter: &mut usize, aux_pass_marker: &str) {
+pub fn aux_pass_count(sent: &[Token], counter: &mut usize, aux_pass_marker: &str) {
     if !(aux_pass_marker == "aux" || aux_pass_marker == "passiv") {
         panic!("Usage: aux_pass_marker must be \"aux\" or \"passiv\"");
     }
-    for i in 0..gold_sent.len() {
-        let gold_lemma = &gold_sent[i].lemma().expect("No lemma");
+    for i in 0..sent.len() {
+        let gold_lemma = &sent[i].lemma().expect("No lemma");
         if gold_lemma.ends_with(aux_pass_marker) {
             *counter += 1;
         }

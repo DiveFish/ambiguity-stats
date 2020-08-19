@@ -951,3 +951,9 @@
 14	abfinden	ab#finden	V	VVINF	clause_id:0|id:1034|tf:VC	15	AUX	_	_
 15	müssen	müssen%aux	V	VMINF	clause_id:0|id:1034|tf:VC	4	AUX	_	_
 16	.	.	$.	$.	clause_id:1|id:1034|tf:UNK	15	-PUNCT-	_	_
+
+1	die	die	_	ART	_	2	DET	_	_
+2	Frauen	Frau	_	NN	_	3	OBJA	_	_
+3	lieben	lieben	_	VVFIN	_	0	ROOT	_	_
+4	Männer	Mann	_	NN	_	3	SUBJ	_	_
+5	.	.	_	$.	_	4	-PUNCT-	_	_

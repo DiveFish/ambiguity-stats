@@ -38,24 +38,26 @@ pub fn main() {
 
     let golddatafile = matches.value_of("INPUT_GOLD").unwrap();
     let parserdatafile = matches.value_of("INPUT_NONGOLD").unwrap();
-    let (_golddata, _parserdata) = read_gng_data(golddatafile, parserdatafile);
+    let (golddata, parserdata) = read_gng_data(golddatafile, parserdatafile);
 
     // Correct subject/object fit indicated by 1, swap by 0, other label given
-    /*
+
     let parser = matches.value_of("PARSER").unwrap();
+
     println!("Parser\tSent\tS fit\tO fit\tS gold\tO gold\tS parser\tO parser\tOrder\tProp1\tProp2");
-    las_no_heads = las_no_heads_feats(&parserdata, &golddata, &parser);
-    eprintln!("In {}\nSubject/object accuracy: {}\n", parserdatafile, las_no_heads);
-    prop_scores(&parserdata, &golddata, &parser);
-    */
+    let las_feats = las_feats(&golddata, &parserdata, &parser, false); // ... no_amb
+    eprintln!("In {}\nSubject/object accuracy: {}\n", parserdatafile, las_feats);
+    //prop_scores(&golddata, &parserdata, &parser, false, false); // ... no_amb, sent_las
+
     //let num_features = matches.value_of("FEATURES").unwrap().parse::<usize>().unwrap();
-    //prop_scores_combined(&parserdata, &golddata, &parser, num_features);
+    //prop_scores_combined(&golddata, &parserdata, &parser, num_features);
 
     // Attachment scores
     /*
-    let (las, uas) = las_uas(&parserdata, &golddata);
+    let (las, uas) = las_uas(&golddata, &parserdata);
     println!("LAS {:?} and UAS {:?}", las, uas);
-    let per_sent_las = per_sent_uas(&parserdata, &golddata);
+
+    let per_sent_las = per_sent_uas(&golddata, &parserdata);
     for las in per_sent_las {
         println!("{}", las);
     }

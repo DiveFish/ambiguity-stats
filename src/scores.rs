@@ -15,7 +15,7 @@ pub fn f1_score(precision: f32, recall: f32) -> f32 {
     2.0 * ( (precision * recall) / (precision + recall))
 }
 
-pub fn las(output: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> f32 {
+pub fn las(gold: &Vec<Vec<Token>>, output: &Vec<Vec<Token>>) -> f32 {
     let mut head_label_errors = 0.0;
     let mut n_attachments = 0.0;
 
@@ -33,7 +33,7 @@ pub fn las(output: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> f32 {
     1.0 - (head_label_errors / n_attachments)
 }
 
-pub fn uas(output: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> f32 {
+pub fn uas(gold: &Vec<Vec<Token>>, output: &Vec<Vec<Token>>) -> f32 {
     let mut head_errors = 0.0;
     let mut n_heads = 0.0;
 
@@ -49,19 +49,21 @@ pub fn uas(output: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> f32 {
     1.0 - (head_errors / n_heads)
 }
 
-pub fn las_uas(output: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> (f32, f32) {
+pub fn las_uas(gold: &Vec<Vec<Token>>, output: &Vec<Vec<Token>>) -> (f32, f32) {
     let mut head_errors = 0.0;
     let mut head_label_errors = 0.0;
     let mut n_attachments = 0.0;
 
     for (output_sent, gold_sent) in output.iter().zip(gold.iter()) {
-        for (output_token, gold_token) in output_sent.iter().zip(gold_sent.iter()) {
-            n_attachments += 1.0;
-            if output_token.head() != gold_token.head() {
-                head_errors += 1.0;
-                head_label_errors += 1.0;
-            } else if output_token.head_rel() != gold_token.head_rel() {
-                head_label_errors += 1.0;
+        if gold_sent.len() == 10 {
+            for (output_token, gold_token) in output_sent.iter().zip(gold_sent.iter()) {
+                n_attachments += 1.0;
+                if output_token.head() != gold_token.head() {
+                    head_errors += 1.0;
+                    head_label_errors += 1.0;
+                } else if output_token.head_rel() != gold_token.head_rel() {
+                    head_label_errors += 1.0;
+                }
             }
         }
     }
@@ -72,7 +74,7 @@ pub fn las_uas(output: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> (f32, f32) {
     )
 }
 
-pub fn las_uas_no_punct(output: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> (f32, f32) {
+pub fn las_uas_no_punct(gold: &Vec<Vec<Token>>, output: &Vec<Vec<Token>>) -> (f32, f32) {
     let mut head_errors = 0.0;
     let mut head_label_errors = 0.0;
     let mut n_attachments = 0.0;
@@ -100,9 +102,11 @@ pub fn las_uas_no_punct(output: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> (f3
 /// Attachment scores for parser challenge set. Outputs the overall accuracy for subject and
 /// object relation along with a sentence-based analysis of label fits, etc. in the format
 /// Parser  Sentence    Subject fit   Object fit    Subject gold    Object gold Subject parser  Object parser Word order    Property 1  Property 2
-pub fn las_no_heads_feats(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, parser_model: &str) -> f32 {
+pub fn las_feats(gold: &Vec<Vec<Token>>, parsed: &Vec<Vec<Token>>, parser_model: &str, no_amb: bool) -> f32 {
     let mut n_attachments = 0.0;
     let mut label_errors = 0.0;
+    let mut head_errors = 0.0;
+
     for (parsed_sent, gold_sent) in parsed.iter().zip(gold.iter()) {
 
         print!("{}\t", parser_model);
@@ -132,49 +136,52 @@ pub fn las_no_heads_feats(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, pars
 
             print!("{} ", parsed_token.form());
 
-            if let Some(gold_token_rel) = gold_token.head_rel() {
-                let gold_token_rel = gold_token.head_rel().expect("No head rel");
-                let parsed_token_rel = parsed_token.head_rel().expect("No head rel");
+            if ( no_amb && prop1 != "amb" && prop2 != "amb" ) || !no_amb {
+                if let Some(gold_token_rel) = gold_token.head_rel() {
+                    let gold_token_rel = gold_token.head_rel().expect("No head rel");
+                    let parsed_token_rel = parsed_token.head_rel().expect("No head rel");
 
-                if gold_token_rel == "nsubj" || gold_token_rel == "obj" {
+                    if gold_token_rel == "nsubj" || gold_token_rel == "obj" {
+                        n_attachments += 1.0;
+                        if parsed_token.head_rel() != gold_token.head_rel() {
+                            label_errors += 1.0;
+                        } else if parsed_token.head() != gold_token.head() {
+                            head_errors += 1.0;
+                        }
 
-                    n_attachments += 1.0;
-                    if parsed_token.head_rel() != gold_token.head_rel() {
-                        label_errors += 1.0;
-                    }
+                        if gold_token_rel == "nsubj" {
+                            subj_gold = gold_token_rel;
+                            subj_parsed = parsed_token_rel;
+                        } else if gold_token_rel == "obj" {
+                            obj_gold = gold_token_rel;
+                            obj_parsed = parsed_token_rel;
+                        }
 
-                    if gold_token_rel == "nsubj" {
-                        subj_gold = gold_token_rel;
-                        subj_parsed = parsed_token_rel;
-                    } else if gold_token_rel == "obj" {
-                        obj_gold = gold_token_rel;
-                        obj_parsed = parsed_token_rel;
-                    }
-
-                    if gold_token_rel == "nsubj" && parsed_token.head_rel() == gold_token.head_rel() {
-                        s_fit = "1";
-                    } else if gold_token_rel == "obj" && parsed_token.head_rel() == gold_token.head_rel() {
-                        o_fit = "1";
-                    } else if gold_token_rel == "nsubj" && parsed_token_rel == "obj" {
-                        s_fit = "0";
-                    } else if gold_token_rel == "obj" && parsed_token_rel == "nsubj" {
-                        o_fit = "0";
-                    } else if gold_token_rel == "nsubj" {
-                        s_fit = parsed_token_rel;;
-                    } else if gold_token_rel == "obj" {
-                        o_fit = parsed_token_rel;
+                        if gold_token_rel == "nsubj" && parsed_token.head_rel() == gold_token.head_rel() {
+                            s_fit = "1";
+                        } else if gold_token_rel == "obj" && parsed_token.head_rel() == gold_token.head_rel() {
+                            o_fit = "1";
+                        } else if gold_token_rel == "nsubj" && parsed_token_rel == "obj" {
+                            s_fit = "0";
+                        } else if gold_token_rel == "obj" && parsed_token_rel == "nsubj" {
+                            o_fit = "0";
+                        } else if gold_token_rel == "nsubj" {
+                            s_fit = parsed_token_rel;
+                        } else if gold_token_rel == "obj" {
+                            o_fit = parsed_token_rel;
+                        }
                     }
                 }
             }
         }
         println!("\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}", s_fit, o_fit, subj_gold, obj_gold, subj_parsed, obj_parsed, order, prop1, prop2);
     }
-    1.0 - (label_errors / n_attachments)
+    1.0 - ( (label_errors + head_errors) / n_attachments)
 }
 
 /// Accuracy per challenge set property, incl. (morpho-)syntactic and semantic properties along
 /// with word order.
-pub fn prop_scores(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, parser_model: &str) {
+pub fn prop_scores(gold: &Vec<Vec<Token>>, parsed: &Vec<Vec<Token>>, parser_model: &str, no_amb: bool, sent_las: bool) {
     let mut prop_cnts = BTreeMap::new();
     let mut prop_errs = BTreeMap::new();
     let mut order = "UNK";
@@ -183,6 +190,9 @@ pub fn prop_scores(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, parser_mode
 
     for (parsed_sent, gold_sent) in parsed.iter().zip(gold.iter()) {
         let mut first = true;
+        let mut subj_obj = 0f32;
+        let mut subj_obj_errs = 0f32;
+
         for (parsed_token, gold_token) in parsed_sent.iter().zip(gold_sent.iter()) {
 
             // Extract sentence properties from first token
@@ -195,37 +205,46 @@ pub fn prop_scores(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, parser_mode
                 first = false;
             }
 
-            if let Some(gold_token_rel) = gold_token.head_rel() {
-                let gold_token_rel = gold_token.head_rel().expect("No head rel");
-                let parsed_token_rel = parsed_token.head_rel().expect("No head rel");
+            if ( no_amb && prop1 != "amb" && prop2 != "amb" ) || !no_amb {
+                if let Some(gold_token_rel) = gold_token.head_rel() {
+                    let gold_token_rel = gold_token.head_rel().expect("No head rel");
+                    let parsed_token_rel = parsed_token.head_rel().expect("No head rel");
 
-                if gold_token_rel == "nsubj" || gold_token_rel == "obj" {
-                    *prop_cnts.entry(order).or_insert(0.0) += 1.0;
-                    *prop_cnts.entry(prop1).or_insert(0.0) += 1.0;
-                    if prop1 != prop2 {
-                        *prop_cnts.entry(prop2).or_insert(0.0) += 1.0;
-                    }
-
-                    if parsed_token.head_rel() != gold_token.head_rel() {
-                        *prop_errs.entry(order).or_insert(0.0) += 1.0;
-                        *prop_errs.entry(prop1).or_insert(0.0) += 1.0;
+                    if gold_token_rel == "nsubj" || gold_token_rel == "obj" {
+                        *prop_cnts.entry(order).or_insert(0.0) += 1.0;
+                        *prop_cnts.entry(prop1).or_insert(0.0) += 1.0;
                         if prop1 != prop2 {
-                            *prop_errs.entry(prop2).or_insert(0.0) += 1.0;
+                            *prop_cnts.entry(prop2).or_insert(0.0) += 1.0;
+                        }
+                        subj_obj += 1.0;
+
+                        if parsed_token.head_rel() != gold_token.head_rel() || parsed_token.head() != gold_token.head() {
+                            *prop_errs.entry(order).or_insert(0.0) += 1.0;
+                            *prop_errs.entry(prop1).or_insert(0.0) += 1.0;
+                            if prop1 != prop2 {
+                                *prop_errs.entry(prop2).or_insert(0.0) += 1.0;
+                            }
+                            subj_obj_errs += 1.0;
                         }
                     }
                 }
             }
         }
+
+        if sent_las {
+            println!("{}", 1.0 - subj_obj_errs/subj_obj);
+        }
     }
 
-    for (prop, prop_cnt) in prop_cnts.iter() {
-        let err_cnt = prop_errs.get(prop).expect("No prop");
-        println!("{}\t{}\t{}", parser_model, prop, 1.0 - err_cnt/prop_cnt);
+    if !sent_las {
+        for (prop, prop_cnt) in prop_cnts.iter() {
+            //eprintln!("{}\t{}", prop, prop_cnt);  //Comment out obj in line 213
+        }
     }
 }
 /// Accuracy per challenge set property, incl. (morpho-)syntactic and semantic properties along
 /// with word order.
-pub fn prop_scores_combined(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, parser_model: &str, num_feature: usize) {
+pub fn prop_scores_combined(gold: &Vec<Vec<Token>>, parsed: &Vec<Vec<Token>>, parser_model: &str, num_feats: usize) {
     let mut prop_cnts = BTreeMap::new();
     let mut prop_errs = BTreeMap::new();
 
@@ -241,7 +260,7 @@ pub fn prop_scores_combined(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, pa
                 let mut features = gold_token.features().map(Features::as_map).expect("No mapping");
                 let order = &features.get("order").expect("No order").as_ref().expect("No more order");
                 let props =  &features.get("props").expect("No props").as_ref().expect("No more props").split("-").collect::<Vec<_>>();
-                if num_feature == 3 {
+                if num_feats == 3 {
                     prop1 = String::new();
                     prop1.push_str(order);
                     prop1.push_str("-");
@@ -251,19 +270,19 @@ pub fn prop_scores_combined(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, pa
                 } else {
                     prop1 = String::new();
                     prop1.push_str(order);
-                    if num_feature == 2 {
+                    if num_feats == 2 {
                         prop1.push_str("-");
                         prop1.push_str(props[0]);
                     }
                     prop2 = String::new();
-                    if num_feature == 2 {
+                    if num_feats == 2 {
                         prop2.push_str(order);
                         prop2.push_str("-");
                     }
                     prop2.push_str(props[1]);
                     prop3 = String::new();
                     prop3.push_str(props[0]);
-                    if num_feature == 2 {
+                    if num_feats == 2 {
                         prop3.push_str("-");
                         prop3.push_str(props[1]);
                     }
@@ -277,14 +296,14 @@ pub fn prop_scores_combined(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, pa
 
                 if gold_token_rel == "nsubj" || gold_token_rel == "obj" {
                     *prop_cnts.entry(prop1.clone()).or_insert(0.0) += 1.0;
-                    if num_feature != 3 {
+                    if num_feats != 3 {
                         *prop_cnts.entry(prop2.clone()).or_insert(0.0) += 1.0;
                         *prop_cnts.entry(prop3.clone()).or_insert(0.0) += 1.0;
                     }
 
-                    if parsed_token.head_rel() != gold_token.head_rel() {
+                    if parsed_token.head_rel() != gold_token.head_rel() || parsed_token.head() != gold_token.head() {
                         *prop_errs.entry(prop1.clone()).or_insert(0.0) += 1.0;
-                        if num_feature != 3 {
+                        if num_feats != 3 {
                             *prop_errs.entry(prop2.clone()).or_insert(0.0) += 1.0;
                             *prop_errs.entry(prop3.clone()).or_insert(0.0) += 1.0;
                         }
@@ -303,7 +322,7 @@ pub fn prop_scores_combined(parsed: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>, pa
     }
 }
 
-pub fn per_sent_las(output: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> Vec<f32> {
+pub fn per_sent_las(gold: &Vec<Vec<Token>>, output: &Vec<Vec<Token>>) -> Vec<f32> {
     let mut sent_las = Vec::with_capacity(gold.len());
 
     for (output_sent, gold_sent) in output.iter().zip(gold.iter()) {
@@ -324,7 +343,7 @@ pub fn per_sent_las(output: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> Vec<f32
     sent_las
 }
 
-pub fn per_sent_uas(output: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> Vec<f32> {
+pub fn per_sent_uas(gold: &Vec<Vec<Token>>, output: &Vec<Vec<Token>>) -> Vec<f32> {
     let mut sent_uas = Vec::with_capacity(gold.len());
 
     for (output_sent, gold_sent) in output.iter().zip(gold.iter()) {

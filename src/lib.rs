@@ -46,8 +46,11 @@ pub use reader::*;
 mod scores;
 pub use scores::*;
 
-mod syntax;
-pub use syntax::*;
+mod syntax_analysis;
+pub use syntax_analysis::*;
+
+mod generator;
+pub use generator::*;
 
 mod tp_fp_fn;
 pub use tp_fp_fn::*;

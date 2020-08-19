@@ -21,8 +21,8 @@ pub fn main() {
 
     let dir = matches.value_of("INPUT_DIR").unwrap();
     let files = get_all_files(dir);
-    for filename in files {
 
+    for filename in files {
         let filename_copy = filename.clone();
         let filename_split = filename_copy.split("/").collect::<Vec<_>>();
         let description = filename_split[filename_split.len()-1];

@@ -951,3 +951,9 @@
 14	abfinden	ab#finden	_	VERB-VVINF	TopoField=VC|doc=T990507.94|sent_id=s1035	0	root	_	_
 15	müssen	müssen	_	AUX-VMINF	SpaceAfter=No|TopoField=VC|doc=T990507.94|sent_id=s1035	14	aux	_	_
 16	.	.	_	PUNCT-$.	_|doc=T990507.94|sent_id=s1035	14	punct	_	_
+
+1	die	die	_	DET-ART	_	2	det	_	_
+2	Frauen	Frau	_	NOUN-NN	_	3	obj	_	_
+3	lieben	lieben	_	VERB-VVFIN	_	0	root	_	_
+4	Männer	Mann	_	NOUN-NN	_	3	nsubj	_	_
+5	.	.	_	PUNCT-$.	_	4	punct	_	_

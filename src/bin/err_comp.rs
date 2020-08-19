@@ -15,20 +15,20 @@ pub fn main() {
         .author("DiveFish")
         .about("Compare different parser results.")
         .arg(
-            Arg::with_name("INPUT_DEP")
-                .help("Sets the dependency-embedding-based parser file")
+            Arg::with_name("INPUT_GOLD")
+                .help("Sets the gold standard file")
                 .required(true)
                 .index(1),
         )
         .arg(
-            Arg::with_name("INPUT_PMI")
-                .help("Sets the PMI-based parser file")
+            Arg::with_name("INPUT_DEP")
+                .help("Sets the dependency-embedding-based parser file")
                 .required(true)
                 .index(2),
         )
         .arg(
-            Arg::with_name("INPUT_GOLD")
-                .help("Sets the gold standard file")
+            Arg::with_name("INPUT_PMI")
+                .help("Sets the PMI-based parser file")
                 .required(true)
                 .index(3),
         )
@@ -52,15 +52,15 @@ pub fn main() {
         )
         .get_matches();
 
+    let gold_file = matches.value_of("INPUT_GOLD").unwrap();
     let dep_file = matches.value_of("INPUT_DEP").unwrap();
     let pmi_file = matches.value_of("INPUT_PMI").unwrap();
-    let gold_file = matches.value_of("INPUT_GOLD").unwrap();
 
+    let gold_sents = read_sentences(gold_file);
     let dep_sents = read_sentences(dep_file);
     let pmi_sents = read_sentences(pmi_file);
-    let gold_sents = read_sentences(gold_file);
 
-    let (errs_shared, dep_errs, pmi_errs) = comp_inv_err_sents(&dep_sents, &pmi_sents, &gold_sents);
+    let (errs_shared, dep_errs, pmi_errs) = comp_inv_err_sents(&gold_sents, &dep_sents, &pmi_sents);
 
     let errs_shared_out_file = matches.value_of("OUTPUT_ERRS_SHARED").unwrap();
     let dep_errs_out_file = matches.value_of("OUTPUT_ERRS_DEP").unwrap();

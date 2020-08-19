@@ -26,24 +26,30 @@ pub fn main() {
         )
         .get_matches();
 
-    let intput_file = matches.value_of("INPUT").unwrap();
-    let output_file = matches.value_of("OUTPUT").unwrap();
-    let (gold, parsed) = read_gng_data(intput_file, output_file);
+    let input_file = matches.value_of("INPUT").unwrap();
+    //let output_file = matches.value_of("OUTPUT").unwrap();
+
+    //let (gold, parsed) = read_gng_data(input_file, output_file);
     //order_freq_ud(&gold, &parsed, "german", false, false);
-    definiteness_ud(&gold, &parsed, "german", false, false); // ... language, las, debug
+    //definiteness_hdt(&gold, &parsed, "german", true, true, false); // ... language, las, binary, debug
     //negated_objs(&gold, &parsed, "UD", "german");
 
-    /*
-    let (triples, properties) = extract_triples(&intput_file);
-    let (templates, templates_aux) = generate_templates_dutch();
-    sentence_generator(&triples, &properties, &templates, &templates_aux, "Daarom", "Omdat", output_file);
-    */
+    let input = read_data(input_file);
+    filter_gold(input, &[&"opron".to_string(),&"invan".to_string(),&"psy".to_string()]);
+    //let (triples, properties) = extract_sent_parts(&input_file);
+    // GERMAN
+    //let (templates, templates_aux, templates_pp, templates_aux_pp) = generate_templates_german();
+    //sentence_generator(&triples, &properties, &templates, &templates_aux, &templates_pp, &templates_aux_pp, "Deshalb", "Weil", output_file);
+    // DUTCH
+    //let (templates, templates_aux, templates_pp) = generate_templates_dutch();
+    //sentence_generator(&triples, &properties, &templates, &templates_aux, templates_pp, "Daarom", "Omdat", output_file);
+
 }
 
 /// `Properties' includes the property combination, e.g. accusative and ambiguous sentences carry
 /// the property acc-amb
-fn extract_triples(file: &str) -> (Vec<Vec<String>>, Vec<String>) {
-    let mut triples = Vec::new();
+fn extract_sent_parts(file: &str) -> (Vec<Vec<String>>, Vec<String>) {
+    let mut sent_parts = Vec::new();
     let mut properties = Vec::new();
 
     let f = File::open(&file).expect("Could not open file.");
@@ -51,26 +57,38 @@ fn extract_triples(file: &str) -> (Vec<Vec<String>>, Vec<String>) {
         let mut l = l.unwrap();
         l = l.trim().to_string();
         let line = l.split("\t").collect::<Vec<_>>();
-        // Standard order: S V O (VAUX) when input is S V O or S VAUX O V
-        if line.len() == 6 {
-            triples.push(vec![line[0].to_owned(), line[2].to_owned(), line[5].to_owned(), line[4].to_owned(), line[3].to_owned()]);
+
+        // Standard order: S V O (VAUX)(PP) when input is SVO or SV_auxOV or SVOPP or SV_auxOPP
+        if line.len() == 7 {    // AUX and PP
+            sent_parts.push(vec![line[0].to_owned(), line[2].to_owned(), line[5].to_owned(), line[4].to_owned(), line[3].to_owned(), line[6].to_owned()]);
             properties.push(line[1].to_owned());
+        } else if line.len() == 6 {
+            if line[5].split(" ").collect::<Vec<_>>().len() > 1 {  // PP
+                sent_parts.push(vec![line[0].to_owned(), line[2].to_owned(), line[3].to_owned(), line[4].to_owned(), line[5].to_owned()]);
+                properties.push(line[1].to_owned());
+            } else {    // AUX
+                sent_parts.push(vec ! [line[0].to_owned(), line[2].to_owned(), line[5].to_owned(), line[4].to_owned(), line[3].to_owned()]);
+                properties.push(line[1].to_owned());
+            }
         } else if line.len() == 5 {
-            triples.push(vec![line[0].to_owned(), line[2].to_owned(), line[3].to_owned(), line[4].to_owned()]);
+            sent_parts.push(vec![line[0].to_owned(), line[2].to_owned(), line[3].to_owned(), line[4].to_owned()]);
             properties.push(line[1].to_owned());
         } else {
-            eprintln!("Triple length {} not supported.", line.len());
+            eprintln!("Sentence length {} not supported.", line.len());
             eprintln!("{:?}", line);
         }
     }
-    (triples, properties)
+    (sent_parts, properties)
 }
 
-fn generate_templates_german() -> (Vec<Vec<String>>, Vec<Vec<String>>)  {
-    let mut templates = Vec::new();
+fn generate_templates_german() -> (Vec<Vec<String>>, Vec<Vec<String>>, Vec<Vec<String>>, Vec<Vec<String>>)  {
     let s = "S".to_owned();
     let v = "V".to_owned();
     let o = "O".to_owned();
+    let v_aux = "VAUX".to_owned();
+    let pp = "PP".to_owned();
+
+    let mut templates = Vec::new();
     templates.push(vec![s.clone(), v.clone(), o.clone()]);
     templates.push(vec![o.clone(), v.clone(), s.clone()]);
     templates.push(vec!["Deshalb".to_owned(), v.clone(), s.clone(), o.clone()]);
@@ -81,10 +99,6 @@ fn generate_templates_german() -> (Vec<Vec<String>>, Vec<Vec<String>>)  {
     templates.push(vec!["Weil".to_owned(), o.clone(), s.clone(), v.clone()]);
 
     let mut templates_aux = Vec::new();
-    let s = "S".to_owned();
-    let v_aux = "VAUX".to_owned();
-    let v = "V".to_owned();
-    let o = "O".to_owned();
     templates_aux.push(vec![s.clone(), v_aux.clone(), o.clone(), v.clone()]);
     templates_aux.push(vec![o.clone(), v_aux.clone(), s.clone(), v.clone()]);
     templates_aux.push(vec!["Deshalb".to_owned(), v_aux.clone(), s.clone(), o.clone(), v.clone()]);
@@ -94,10 +108,30 @@ fn generate_templates_german() -> (Vec<Vec<String>>, Vec<Vec<String>>)  {
     templates_aux.push(vec!["Weil".to_owned(), s.clone(), o.clone(), v.clone(), v_aux.clone()]);
     templates_aux.push(vec!["Weil".to_owned(), o.clone(), s.clone(), v.clone(), v_aux.clone()]);
 
-    (templates, templates_aux)
+    let mut templates_pp = Vec::new();
+    templates_pp.push(vec![s.clone(), v.clone(), pp.clone(), o.clone()]);
+    templates_pp.push(vec![o.clone(), v.clone(), pp.clone(), s.clone()]);
+    templates_pp.push(vec!["Deshalb".to_owned(), v.clone(), pp.clone(), s.clone(), o.clone()]);
+    templates_pp.push(vec!["Deshalb".to_owned(), v.clone(), pp.clone(), o.clone(), s.clone()]);
+    templates_pp.push(vec![v.clone(), pp.clone(), s.clone(), o.clone(), "?".to_owned()]);
+    templates_pp.push(vec![v.clone(), pp.clone(), o.clone(), s.clone(), "?".to_owned()]);
+    templates_pp.push(vec!["Weil".to_owned(), pp.clone(), s.clone(), o.clone(), v.clone()]);
+    templates_pp.push(vec!["Weil".to_owned(), pp.clone(), o.clone(), s.clone(), v.clone()]);
+
+    let mut templates_aux_pp = Vec::new();
+    templates_aux_pp.push(vec![s.clone(), v_aux.clone(), pp.clone(), o.clone(), v.clone()]);
+    templates_aux_pp.push(vec![o.clone(), v_aux.clone(), pp.clone(), s.clone(), v.clone()]);
+    templates_aux_pp.push(vec!["Deshalb".to_owned(), v_aux.clone(), pp.clone(), s.clone(), o.clone(), v.clone()]);
+    templates_aux_pp.push(vec!["Deshalb".to_owned(), v_aux.clone(), pp.clone(), o.clone(), s.clone(), v.clone()]);
+    templates_aux_pp.push(vec![v_aux.clone(), pp.clone(), s.clone(), o.clone(), v.clone(), "?".to_owned()]);
+    templates_aux_pp.push(vec![v_aux.clone(), pp.clone(), o.clone(), s.clone(), v.clone(), "?".to_owned()]);
+    templates_aux_pp.push(vec!["Weil".to_owned(), pp.clone(), s.clone(), o.clone(), v.clone(), v_aux.clone()]);
+    templates_aux_pp.push(vec!["Weil".to_owned(), pp.clone(), o.clone(), s.clone(), v.clone(), v_aux.clone()]);
+
+    (templates, templates_aux, templates_pp, templates_aux_pp)
 }
 
-fn generate_templates_dutch() -> (Vec<Vec<String>>, Vec<Vec<String>>)  {
+fn generate_templates_dutch() -> (Vec<Vec<String>>, Vec<Vec<String>>, Vec<Vec<String>>, Vec<Vec<String>>)  {
     let mut templates = Vec::new();
     let s = "S".to_owned();
     let v = "V".to_owned();
@@ -119,5 +153,9 @@ fn generate_templates_dutch() -> (Vec<Vec<String>>, Vec<Vec<String>>)  {
     templates_aux.push(vec![v_aux.clone(), s.clone(), o.clone(), v.clone(), "?".to_owned()]);
     templates_aux.push(vec!["Omdat".to_owned(), s.clone(), o.clone(), v_aux.clone(), v.clone()]);
 
-    (templates, templates_aux)
+    let mut templates_pp = Vec::new();
+    let mut templates_aux_pp = Vec::new();
+    //TODO: Implement
+
+    (templates, templates_aux, templates_pp, templates_aux_pp)
 }

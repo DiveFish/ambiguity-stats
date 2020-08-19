@@ -33,6 +33,7 @@ pub fn main() {
     let input = matches.value_of("INPUT_GOLD").unwrap();
     let _output = matches.value_of("INPUT_NONGOLD").unwrap();
 
+    /*
     let mut freq_map: HashMap<String, usize> = HashMap::new();
     let files = get_all_files(input);
     for file in files {
@@ -51,23 +52,19 @@ pub fn main() {
     for i in 0..100 {
         println!("{:?}", freq_vec[i]);
     }
-    /*
+    */
     let golddatafile = matches.value_of("INPUT_GOLD").unwrap();
     let parserdatafile = matches.value_of("INPUT_NONGOLD").unwrap();
     let (golddata, parserdata) = read_gng_data(golddatafile, parserdatafile);
-
-    let mut n_sent = 0;
+    let mut n_sent = golddata.len();
     let mut n_token = 0;
     for gold_sent in &golddata {
-        n_sent += 1;
-        for _ in 0..gold_sent.len() {
-            n_token += 1;
-        }
+        n_token += gold_sent.len();
     }
     println!("#sents {:?}, #tokens {:?}", n_sent, n_token);
 
     //get_topofields(golddata.as_slice());
-
+    /*
     let mut occurrences_total = 0;
     let mut errors_total = 0;
 
