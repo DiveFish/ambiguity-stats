@@ -29,95 +29,97 @@ pub fn main() {
     let golddatafile = matches.value_of("INPUT_GOLD").unwrap();
     let parserdatafile = matches.value_of("INPUT_NONGOLD").unwrap();
     let (golddata, parserdata) = read_gng_data(golddatafile, parserdatafile);
-    errors(&golddata, &parserdata);
+    errors(&golddata, &parserdata, false);
 }
 
-pub fn errors(golddata: &[Vec<Token>], parserdata: &[Vec<Token>]) {
+pub fn errors(golddata: &[Vec<Token>], parserdata: &[Vec<Token>], hdt: bool) {
     //Check if &[[Token]] works
 
     // Dependency labels
-    let labels_hdt = [
-        "-PUNCT-",
-        "-UNKNOWN-",
-        "ADV",
-        "APP",
-        "ATTR",
-        "AUX",
-        "AVZ",
-        "CJ",
-        "DET",
-        "EXPL",
-        "GMOD",
-        "gmod-app",
-        "GRAD",
-        "KOM",
-        "KON",
-        "KONJ",
-        "koord",
-        "NEB",
-        "OBJA",
-        "OBJC",
-        "OBJD",
-        "OBJG",
-        "OBJI",
-        "OBJP",
-        "PAR",
-        "PART",
-        "PN",
-        "PP",
-        "PRED",
-        "REL",
-        "ROOT",
-        "S",
-        "SUBJ",
-        "SUBJC",
-        "ZEIT",
-        "_"
+    let labels = if hdt {
+        vec![
+            "-PUNCT-",
+            "-UNKNOWN-",
+            "ADV",
+            "APP",
+            "ATTR",
+            "AUX",
+            "AVZ",
+            "CJ",
+            "DET",
+            "EXPL",
+            "GMOD",
+            "gmod-app",
+            "GRAD",
+            "KOM",
+            "KON",
+            "KONJ",
+            "koord",
+            "NEB",
+            "OBJA",
+            "OBJC",
+            "OBJD",
+            "OBJG",
+            "OBJI",
+            "OBJP",
+            "PAR",
+            "PART",
+            "PN",
+            "PP",
+            "PRED",
+            "REL",
+            "ROOT",
+            "S",
+            "SUBJ",
+            "SUBJC",
+            "ZEIT",
+            "_"
 
-    ];
-    let labels = [
-        "acl",
-        "acl:relcl",
-        "advcl",
-        "advmod",
-        "advmod:neg",
-        "amod",
-        "appos",
-        "aux",
-        "aux:pass",
-        "case",
-        "cc",
-        "ccomp",
-        "compound:prt",
-        "conj",
-        "cop",
-        "csubj",
-        "csubj:pass",
-        "dep",
-        "det",
-        "det:neg",
-        "discourse",
-        "expl",
-        "fixed",
-        "flat",
-        "flat:foreign",
-        "iobj",
-        "mark",
-        "nmod",
-        "nmod:poss",
-        "nsubj",
-        "nsubj:pass",
-        "nummod",
-        "obj",
-        "obl",
-        "parataxis",
-        "punct",
-        "root",
-        "xcomp"
+        ]
+    } else {
+        vec![
+            "acl",
+            "acl:relcl",
+            "advcl",
+            "advmod",
+            "advmod:neg",
+            "amod",
+            "appos",
+            "aux",
+            "aux:pass",
+            "case",
+            "cc",
+            "ccomp",
+            "compound:prt",
+            "conj",
+            "cop",
+            "csubj",
+            "csubj:pass",
+            "dep",
+            "det",
+            "det:neg",
+            "discourse",
+            "expl",
+            "fixed",
+            "flat",
+            "flat:foreign",
+            "iobj",
+            "mark",
+            "nmod",
+            "nmod:poss",
+            "nsubj",
+            "nsubj:pass",
+            "nummod",
+            "obj",
+            "obl",
+            "parataxis",
+            "punct",
+            "root",
+            "xcomp"
+        ]
+    };
 
-    ];
-
-    //println!("Label -- head-label errors -- head errors -- label errors");
+    println!("Label -- head-label errors -- head errors -- label errors");
     for label in labels.iter() {
         let mut all_attachments = 0;
         let mut all_combined_errors = 0;
@@ -143,7 +145,7 @@ pub fn errors(golddata: &[Vec<Token>], parserdata: &[Vec<Token>]) {
 
         let las = (1.0
             - (all_combined_errors + all_head_errors + all_label_errors) as f32
-                / all_attachments as f32)
+            / all_attachments as f32)
             * 100.0;
         let uas = (1.0 - ((all_combined_errors + all_head_errors) as f32 / all_attachments as f32))
             * 100.0;
@@ -151,7 +153,7 @@ pub fn errors(golddata: &[Vec<Token>], parserdata: &[Vec<Token>]) {
 
         let error_sum = all_combined_errors + all_head_errors + all_label_errors;
 
-        println!(
+        print!(
             "{}\t{:?}\t{:?}\t{:?}",
             label, all_combined_errors, all_head_errors, all_label_errors
         );
@@ -160,7 +162,6 @@ pub fn errors(golddata: &[Vec<Token>], parserdata: &[Vec<Token>]) {
         let mut wrong_label_vec: Vec<_> = all_wrong_labels.iter().collect();
         wrong_label_vec.sort_by(|a, b| b.1.cmp(&a.1));
 
-        /*
         let mut i: usize = 0;
         print!("\t");
         while i < 5 && wrong_label_vec.len() > i {
@@ -169,6 +170,7 @@ pub fn errors(golddata: &[Vec<Token>], parserdata: &[Vec<Token>]) {
         }
         println!();
 
+        /*
         // Get total number of errors per label
         let mut count: usize = 0;
         for (_, freq) in wrong_label_vec.iter() {
