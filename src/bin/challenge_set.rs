@@ -38,11 +38,11 @@ pub fn main() {
     //filter_gold(input, &[&"opron".to_string(),&"invan".to_string(),&"psy".to_string()]);
     let (triples, properties) = extract_sent_parts(&input_file);
     // GERMAN
-    let (templates, templates_aux, templates_pp, templates_aux_pp) = generate_templates_german();
-    sentence_generator(&triples, &properties, &templates, &templates_aux, &templates_pp, &templates_aux_pp, "Deshalb", "Weil", output_file);
+    //let (templates, templates_aux, templates_pp, templates_aux_pp) = generate_templates_dutch();
+    //sentence_generator(&triples, &properties, &templates, &templates_aux, &templates_pp, &templates_aux_pp, "Deshalb", "Weil", output_file);
     // DUTCH
-    //let (templates, templates_aux, templates_pp) = generate_templates_dutch();
-    //sentence_generator(&triples, &properties, &templates, &templates_aux, templates_pp, "Daarom", "Omdat", output_file);
+    let (templates, templates_aux, templates_pp, templates_aux_pp) = generate_templates_dutch();
+    sentence_generator(&triples, &properties, &templates, &templates_aux, &templates_pp, &templates_aux_pp, "Daarom", "Omdat", output_file);
 
 }
 
@@ -143,10 +143,7 @@ fn generate_templates_dutch() -> (Vec<Vec<String>>, Vec<Vec<String>>, Vec<Vec<St
     templates.push(vec!["Omdat".to_owned(), s.clone(), o.clone(), v.clone()]);
 
     let mut templates_aux = Vec::new();
-    let s = "S".to_owned();
     let v_aux = "VAUX".to_owned();
-    let v = "V".to_owned();
-    let o = "O".to_owned();
     templates_aux.push(vec![s.clone(), v_aux.clone(), o.clone(), v.clone()]);
     templates_aux.push(vec![o.clone(), v_aux.clone(), s.clone(), v.clone()]);
     templates_aux.push(vec!["Daarom".to_owned(), v_aux.clone(), s.clone(), o.clone(), v.clone()]);
@@ -154,8 +151,19 @@ fn generate_templates_dutch() -> (Vec<Vec<String>>, Vec<Vec<String>>, Vec<Vec<St
     templates_aux.push(vec!["Omdat".to_owned(), s.clone(), o.clone(), v_aux.clone(), v.clone()]);
 
     let mut templates_pp = Vec::new();
+    let pp = "PP".to_owned();
+    templates_pp.push(vec![s.clone(), v.clone(), pp.clone(), o.clone()]);
+    templates_pp.push(vec![o.clone(), v.clone(), s.clone(), pp.clone()]);
+    templates_pp.push(vec!["Daarom".to_owned(), v.clone(), s.clone(), pp.clone(), o.clone()]);
+    templates_pp.push(vec![v.clone(), s.clone(), pp.clone(), o.clone(), "?".to_owned()]);
+    templates_pp.push(vec!["Omdat".to_owned(), s.clone(), pp.clone(), o.clone(), v.clone()]);
+
     let mut templates_aux_pp = Vec::new();
-    //TODO: Implement
+    templates_aux_pp.push(vec![s.clone(), v_aux.clone(), o.clone(), pp.clone(), v.clone()]);
+    templates_aux_pp.push(vec![o.clone(), v_aux.clone(), s.clone(), pp.clone(), v.clone()]);
+    templates_aux_pp.push(vec!["Daarom".to_owned(), v_aux.clone(), s.clone(), o.clone(), pp.clone(), v.clone()]);
+    templates_aux_pp.push(vec![v_aux.clone(), s.clone(), o.clone(), pp.clone(), v.clone(), "?".to_owned()]);
+    templates_aux_pp.push(vec!["Omdat".to_owned(), s.clone(), o.clone(), pp.clone(), v_aux.clone(), v.clone()]);
 
     (templates, templates_aux, templates_pp, templates_aux_pp)
 }

@@ -41,22 +41,22 @@ pub fn sentence_generator(
                     if svo_triple[0].starts_with("?") {
                         continue;
                     }
-                    sent_to_conll_gold(template_aux_pp, svo_triple, "LK[V]MF[SO]", property, aux, &mut file);
+                    sent_to_conll_gold(template_aux_pp, svo_triple, "VF[ADV]LK[V]MF[SO]", property, aux, &mut file);
                 } else if template_aux_pp[0] == v1_intro && template_aux_pp[3] == "O" {
                     if svo_triple[0].starts_with("*") {
                         continue;
                     }
-                    sent_to_conll_gold(template_aux_pp, svo_triple, "LK[V]MF[OS]", property, aux, &mut file);
+                    sent_to_conll_gold(template_aux_pp, svo_triple, "VF[ADV]LK[V]MF[OS]", property, aux, &mut file);
                 } else if template_aux_pp[0] == "VAUX" && template_aux_pp[2] == "S" {
                     if svo_triple[0].starts_with("?") {
                         continue;
                     }
-                    sent_to_conll_gold(template_aux_pp, svo_triple, "LK[V]MF[SO]Q", property, aux, &mut file);
+                    sent_to_conll_gold(template_aux_pp, svo_triple, "LK[V]MF[SO]", property, aux, &mut file);
                 } else if template_aux_pp[0] == "VAUX" && template_aux_pp[2] == "O" {
                     if svo_triple[0].starts_with("*") {
                         continue;
                     }
-                    sent_to_conll_gold(template_aux_pp, svo_triple, "LK[V]MF[OS]Q", property, aux, &mut file);
+                    sent_to_conll_gold(template_aux_pp, svo_triple, "LK[V]MF[OS]", property, aux, &mut file);
                 } else if template_aux_pp[0] == vl_intro && template_aux_pp[2] == "S" {
                     if svo_triple[0].starts_with("?") {
                         continue;
@@ -79,22 +79,22 @@ pub fn sentence_generator(
                     if svo_triple[0].starts_with("?") {
                         continue;
                     }
-                    sent_to_conll_gold(template_aux, svo_triple, "LK[V]MF[SO]", property, aux, &mut file);
+                    sent_to_conll_gold(template_aux, svo_triple, "VF[ADV]LK[V]MF[SO]", property, aux, &mut file);
                 } else if template_aux[0] == v1_intro && template_aux[2] == "O" {
                     if svo_triple[0].starts_with("*") {
                         continue;
                     }
-                    sent_to_conll_gold(template_aux, svo_triple, "LK[V]MF[OS]", property, aux, &mut file);
+                    sent_to_conll_gold(template_aux, svo_triple, "VF[ADV]LK[V]MF[OS]", property, aux, &mut file);
                 } else if template_aux[0] == "VAUX" && template_aux[1] == "S" {
                     if svo_triple[0].starts_with("?") {
                         continue;
                     }
-                    sent_to_conll_gold(template_aux, svo_triple, "LK[V]MF[SO]Q", property, aux, &mut file);
+                    sent_to_conll_gold(template_aux, svo_triple, "LK[V]MF[SO]", property, aux, &mut file);
                 } else if template_aux[0] == "VAUX" && template_aux[1] == "O" {
                     if svo_triple[0].starts_with("*") {
                         continue;
                     }
-                    sent_to_conll_gold(template_aux, svo_triple, "LK[V]MF[OS]Q", property, aux, &mut file);
+                    sent_to_conll_gold(template_aux, svo_triple, "LK[V]MF[OS]", property, aux, &mut file);
                 } else if template_aux[0] == vl_intro && template_aux[1] == "S" {
                     if svo_triple[0].starts_with("?") {
                         continue;
@@ -117,22 +117,22 @@ pub fn sentence_generator(
                     if svo_triple[0].starts_with("?") {
                         continue;
                     }
-                    sent_to_conll_gold(template_pp, svo_triple, "LK[V]MF[SO]", property, aux, &mut file);
+                    sent_to_conll_gold(template_pp, svo_triple, "VF[ADV]LK[V]MF[SO]", property, aux, &mut file);
                 } else if template_pp[0] == v1_intro && template_pp[3] == "O" {
                     if svo_triple[0].starts_with("*") {
                         continue;
                     }
-                    sent_to_conll_gold(template_pp, svo_triple, "LK[V]MF[OS]", property, aux, &mut file);
+                    sent_to_conll_gold(template_pp, svo_triple, "VF[ADV]LK[V]MF[OS]", property, aux, &mut file);
                 } else if template_pp[0] == "V" && template_pp[2] == "S" {
                     if svo_triple[0].starts_with("?") {
                         continue;
                     }
-                    sent_to_conll_gold(template_pp, svo_triple, "LK[V]MF[SO]Q", property, aux, &mut file);
+                    sent_to_conll_gold(template_pp, svo_triple, "LK[V]MF[SO]", property, aux, &mut file);
                 } else if template_pp[0] == "V" && template_pp[2] == "O" {
                     if svo_triple[0].starts_with("*") {
                         continue;
                     }
-                    sent_to_conll_gold(template_pp, svo_triple, "LK[V]MF[OS]Q", property, aux, &mut file);
+                    sent_to_conll_gold(template_pp, svo_triple, "LK[V]MF[OS]", property, aux, &mut file);
                 } else if template_pp[0] == vl_intro && template_pp[2] == "S" {
                     if svo_triple[0].starts_with("?") {
                         continue;
@@ -156,22 +156,22 @@ pub fn sentence_generator(
                     if svo_triple[0].starts_with("?") {
                         continue;
                     }
-                    sent_to_conll_gold(template, svo_triple, "LK[V]MF[SO]", property, aux, &mut file);
+                    sent_to_conll_gold(template, svo_triple, "VF[ADV]LK[V]MF[SO]", property, aux, &mut file);
                 } else if template[0] == v1_intro && template[2] == "O" {
                     if svo_triple[0].starts_with("*") {
                         continue;
                     }
-                    sent_to_conll_gold(template, svo_triple, "LK[V]MF[OS]", property, aux, &mut file);
+                    sent_to_conll_gold(template, svo_triple, "VF[ADV]LK[V]MF[OS]", property, aux, &mut file);
                 } else if template[0] == "V" && template[1] == "S" {
                     if svo_triple[0].starts_with("?") {
                         continue;
                     }
-                    sent_to_conll_gold(template, svo_triple, "LK[V]MF[SO]Q", property, aux, &mut file);
+                    sent_to_conll_gold(template, svo_triple, "LK[V]MF[SO]", property, aux, &mut file);
                 } else if template[0] == "V" && template[1] == "O" {
                     if svo_triple[0].starts_with("*") {
                         continue;
                     }
-                    sent_to_conll_gold(template, svo_triple, "LK[V]MF[OS]Q", property, aux, &mut file);
+                    sent_to_conll_gold(template, svo_triple, "LK[V]MF[OS]", property, aux, &mut file);
                 } else if template[0] == vl_intro && template[1] == "S" {
                     if svo_triple[0].starts_with("?") {
                         continue;
@@ -201,10 +201,10 @@ fn sent_to_conll_gold(template: &Vec<String>, svo_triple: &Vec<String>, order: &
     };
     let mut v_head = if svo_triple.len() == 6 {  // With auxiliary AND PP
         match order {
-            "LK[V]MF[SO]" => 2 + pp_len + subj_len + obj_len + 1,   // deshalb vso
-            "LK[V]MF[OS]" => 2 + pp_len + subj_len + obj_len + 1,   // deshalb vos
-            "LK[V]MF[SO]Q" => 1 + pp_len + subj_len + obj_len + 1,   // vso ?
-            "LK[V]MF[OS]Q" => 1 + pp_len + subj_len + obj_len + 1,   // vos ?
+            "VF[ADV]LK[V]MF[SO]" => 2 + pp_len + subj_len + obj_len + 1,   // deshalb vso
+            "VF[ADV]LK[V]MF[OS]" => 2 + pp_len + subj_len + obj_len + 1,   // deshalb vos
+            "LK[V]MF[SO]" => 1 + pp_len + subj_len + obj_len + 1,   // vso ?
+            "LK[V]MF[OS]" => 1 + pp_len + subj_len + obj_len + 1,   // vos ?
             "VF[S]LK[V]MF[O]" => subj_len + 1 + pp_len + obj_len + 1,   // svo
             "VF[O]LK[V]MF[S]" => obj_len +  1 + pp_len + subj_len + 1,   // ovs
             "MF[SO]VC[V]" => 1 + pp_len + subj_len + obj_len + 1,   // weil sov
@@ -214,10 +214,10 @@ fn sent_to_conll_gold(template: &Vec<String>, svo_triple: &Vec<String>, order: &
     } else if svo_triple.len() == 5 {  // With auxiliary OR PP
         if aux {
             match order {   // With auxiliary
-                "LK[V]MF[SO]" => 2 + subj_len + obj_len + 1,
-                "LK[V]MF[OS]" => 2 + obj_len + subj_len + 1,
-                "LK[V]MF[SO]Q" => 1 + subj_len + obj_len + 1,
-                "LK[V]MF[OS]Q" => 1 + obj_len + subj_len + 1,
+                "VF[ADV]LK[V]MF[SO]" => 2 + subj_len + obj_len + 1,
+                "VF[ADV]LK[V]MF[OS]" => 2 + obj_len + subj_len + 1,
+                "LK[V]MF[SO]" => 1 + subj_len + obj_len + 1,
+                "LK[V]MF[OS]" => 1 + obj_len + subj_len + 1,
                 "VF[S]LK[V]MF[O]" => subj_len + 1 + obj_len + 1,
                 "VF[O]LK[V]MF[S]" => obj_len + 1 + subj_len + 1,
                 "MF[SO]VC[V]" => 1 + subj_len + obj_len + 1,
@@ -226,10 +226,10 @@ fn sent_to_conll_gold(template: &Vec<String>, svo_triple: &Vec<String>, order: &
             }
         } else {
             match order {  // With PP
-                "LK[V]MF[SO]" => 2,
-                "LK[V]MF[OS]" => 2,
-                "LK[V]MF[SO]Q" => 1,
-                "LK[V]MF[OS]Q" => 1,
+                "VF[ADV]LK[V]MF[SO]" => 2,
+                "VF[ADV]LK[V]MF[OS]" => 2,
+                "LK[V]MF[SO]" => 1,
+                "LK[V]MF[OS]" => 1,
                 "VF[S]LK[V]MF[O]" => subj_len + 1,
                 "VF[O]LK[V]MF[S]" => obj_len + 1,
                 "MF[SO]VC[V]" => 1 + subj_len + obj_len + pp_len + 1,
@@ -239,10 +239,10 @@ fn sent_to_conll_gold(template: &Vec<String>, svo_triple: &Vec<String>, order: &
         }
     } else {
         match order {  // No auxiliary
-            "LK[V]MF[SO]" => 2,
-            "LK[V]MF[OS]" => 2,
-            "LK[V]MF[SO]Q" => 1,
-            "LK[V]MF[OS]Q" => 1,
+            "VF[ADV]LK[V]MF[SO]" => 2,
+            "VF[ADV]LK[V]MF[OS]" => 2,
+            "LK[V]MF[SO]" => 1,
+            "LK[V]MF[OS]" => 1,
             "VF[S]LK[V]MF[O]" => subj_len + 1,
             "VF[O]LK[V]MF[S]" => obj_len + 1,
             "MF[SO]VC[V]" => 1 + subj_len + obj_len + 1,
@@ -347,6 +347,9 @@ fn is_aux(verb: &str) -> bool {
         "wird" => true,
         "werden" => true,
         "werdet" => true,
+        "zal" => true,
+        "zult" => true,
+        "zullen" => true,
         _ => false
     }
 }
