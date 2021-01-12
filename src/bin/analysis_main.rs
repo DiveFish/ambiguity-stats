@@ -25,7 +25,7 @@ pub fn main() {
         .arg(
             Arg::with_name("INPUT_NONGOLD")
                 .help("Sets the parser data file to use")
-                .required(true)
+                .required(false)
                 .index(2),
         )
         .get_matches();
@@ -33,6 +33,8 @@ pub fn main() {
     let golddatafile = matches.value_of("INPUT_GOLD").unwrap();
     let parserdatafile = matches.value_of("INPUT_NONGOLD").unwrap();
     let (golddata, parserdata) = read_gng_data(golddatafile, parserdatafile);
+    get_topofields(&golddata, true);
+    /*
 
     let mut n_sent = 0;
     let mut n_token = 0;
@@ -46,8 +48,7 @@ pub fn main() {
         //println!();
     }
     println!("#sents {:?}, #tokens {:?}", n_sent, n_token);
-    /*
-    //get_topofields(golddata.as_slice());
+
 
     let mut occurrences_total = 0;
     let mut errors_total = 0;
@@ -62,20 +63,24 @@ pub fn main() {
     }
     println!("Ambiguity count: {},\terrors {}", occurrences_total, errors_total);
 
-
-    //Get number of errors, number of verbal, nominal and other heads per preposition
+    //Get number of verbal, nominal and other heads per preposition in a UD treebank
     let mut preps: HashMap<String, Vec<usize>> = HashMap::new();
     for i in 0..golddata.len() {
         pp_preps_ud(&mut preps, &golddata[i]);
-        //pp_preps(&mut preps, &golddata[i], &parserdata[i]);
+    }
+    println!("Preposition; Frequency; Verbal heads; Nominal heads; Other heads");
+    for (key, value) in preps.iter() {
+        println!("{}; {}; {}; {}; {}", key, value[0], value[1], value[2], value[3]);
     }
 
-    println!("Preposition; Frequency; Errors; Verbal heads; Nominal heads; Other heads");
+    //Get number of errors, number of verbal, nominal and other heads per preposition in an HDT treebank
+    for i in 0..golddata.len() {
+        pp_preps(&mut preps, &golddata[i], &parserdata[i]);
+    }
+    // println!("Preposition; Frequency; Errors; Verbal heads; Nominal heads; Other heads");
     for (key, value) in preps.iter() {
         println!("{}; {}; {}; {}; {}; {}", key, value[0], value[1], value[2], value[3], value[4]);
     }
-
-    */
 
     // Get verbs involved in inversion along with the event frequency
     let mut inv_verbs: HashMap<String, usize> = HashMap::new();
@@ -88,6 +93,7 @@ pub fn main() {
             //println!("{} {}", key, val);
         }
     }
+    */
 }
 
 /*

@@ -360,6 +360,7 @@ pub fn pp_preps_ud(
 ) {
     for i in 0..gold_sent.len() {
         let gold_token = &gold_sent[i];
+        let gold_pos = gold_token.pos().expect("No PoS");
         let gold_deprel = gold_token.head_rel().expect("No deprel");
         let mut gold_headidx = gold_token.head().expect("No head");
         if gold_headidx == 0 {
@@ -370,10 +371,12 @@ pub fn pp_preps_ud(
         let gold_head_deprel = gold_sent[gold_headidx].head_rel().expect("No deprel");
         let gold_head_headidx= gold_sent[gold_headidx].head().expect("No head");
 
-        if gold_deprel == "case" && ( gold_head_deprel == "obl" || gold_head_deprel == "nmod" || gold_head_deprel == "root" ) {
+        if gold_deprel == "case" &&
+            gold_pos.starts_with("ADP") &&
+            ( gold_head_deprel == "obl" || gold_head_deprel == "nmod" || gold_head_deprel == "root" ) {
             let value = preps
-                .entry(gold_token.form().to_lowercase().to_string())
-                .or_insert(vec![0; 5]);
+                .entry(gold_token.lemma().expect("No lemma").to_lowercase().to_string())
+                .or_insert(vec![0; 4]);
             value[0] += 1;
 
             if gold_head_headidx > 0 {
@@ -381,7 +384,7 @@ pub fn pp_preps_ud(
 
                 if gold_head_headpos.starts_with("VERB") || gold_head_headpos.starts_with("AUX") {
                     value[1] += 1;
-                } else if gold_head_headpos.starts_with("NOUN") {
+                } else if gold_head_headpos.starts_with("NOUN") || gold_head_headpos.starts_with("PROPN") || gold_head_headpos.starts_with("PRON") {
                     value[2] += 1;
                 } else {
                     value[3] += 1;

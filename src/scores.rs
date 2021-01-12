@@ -65,6 +65,8 @@ pub fn las_uas(output: &Vec<Vec<Token>>, gold: &Vec<Vec<Token>>) -> (f32, f32) {
         }
     }
 
+    println!("Head-label errors (LAS): {}", head_label_errors);
+    println!("Head errors (UAS): {}", head_errors);
     (
         1.0 - (head_label_errors / n_attachments),
         1.0 - (head_errors / n_attachments),

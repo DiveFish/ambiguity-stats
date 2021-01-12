@@ -204,6 +204,9 @@ pub fn get_errors_by_labels(
     gold_sent: &[Token],
     parser_sent: &[Token],
 ) -> (usize, usize, usize, usize, HashMap<String, usize>) {
+
+    assert_eq!(gold_sent.len(), parser_sent.len());
+
     let mut attachments = 0;
     let mut combined_errors = 0;
     let mut head_errors = 0;
