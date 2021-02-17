@@ -39,10 +39,10 @@ pub fn main() {
     let (triples, properties) = extract_sent_parts(&input_file);
     // GERMAN
     //let (templates, templates_aux, templates_pp, templates_aux_pp) = generate_templates_dutch();
-    //sentence_generator(&triples, &properties, &templates, &templates_aux, &templates_pp, &templates_aux_pp, "Deshalb", "Weil", output_file);
+    //sentence_generator_german(&triples, &properties, &templates, &templates_aux, &templates_pp, &templates_aux_pp, "Deshalb", "Weil", output_file);
     // DUTCH
     let (templates, templates_aux, templates_pp, templates_aux_pp) = generate_templates_dutch();
-    sentence_generator(&triples, &properties, &templates, &templates_aux, &templates_pp, &templates_aux_pp, "Daarom", "Omdat", output_file);
+    sentence_generator_dutch(&triples, &properties, &templates, &templates_aux, &templates_pp, &templates_aux_pp, "Daarom", "Omdat", output_file);
 
 }
 

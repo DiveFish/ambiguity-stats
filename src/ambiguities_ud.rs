@@ -535,3 +535,83 @@ pub fn pp_preps_errs_ud(
     }
 }
 
+/// Get all prepositions and their LAS
+/// Content of `preps`: prep, frequency, errors
+pub fn prep_errs_ud(
+    preps: &mut HashMap<String, Vec<usize>>,
+    gold_text: &Vec<Vec<Token>>,
+    parser_text: &Vec<Vec<Token>>,
+    head_rel: &str,
+    use_prep_noun: bool,
+    use_idxs: bool
+) {
+    if use_prep_noun || use_idxs {
+        assert_ne!(use_prep_noun, use_idxs);
+    }
+
+    for i in 0..gold_text.len() {
+        let gold_sent = &gold_text[i];
+        let parser_sent = &parser_text[i];
+
+        for j in 0..gold_sent.len() {
+            let gold_token = &gold_sent[j];
+            let gold_deprel = gold_token.head_rel().expect("No deprel");
+            let gold_pos = gold_token.pos().expect("No pos");
+            let mut gold_headidx = gold_token.head().expect("No head");
+            if gold_headidx == 0 {
+                continue;
+            } else {
+                gold_headidx = gold_headidx - 1;
+            }
+            let gold_head_token = &gold_sent[gold_headidx];
+            let gold_head_deprel = gold_head_token.head_rel().expect("No deprel");
+            let gold_head_headidx = gold_head_token.head().expect("No head");
+
+            let parser_token = &parser_sent[j];
+            let parser_deprel = parser_token.head_rel().expect("No deprel");
+            let mut parser_headidx = parser_token.head().expect("No head");
+            if parser_headidx == 0 {
+                continue;
+            } else {
+                parser_headidx = parser_headidx - 1;
+            }
+            let parser_head_token = &parser_sent[parser_headidx];
+            let parser_head_deprel = parser_head_token.head_rel().expect("No deprel");
+            let parser_head_headidx = parser_head_token.head().expect("No head");
+
+            if gold_deprel == "case" && gold_pos.starts_with("ADP") && gold_head_deprel == head_rel {
+                let mut prep = String::new();
+                if use_prep_noun {
+                    prep.push_str(&gold_token.form().to_lowercase().to_string());
+                    prep.push_str(&"_");
+                    prep.push_str(&gold_head_token.form().to_lowercase())
+                } else if use_idxs {
+                    if gold_head_headidx > i {
+                        prep.push_str(&"before-head")
+                    } else {
+                        prep.push_str(&"after-head")
+                    }
+                } else {
+                    prep.push_str(&gold_token.form().to_lowercase().to_string());
+                }
+                let value = preps
+                    .entry(prep)
+                    .or_insert(vec![0; 2]);
+                value[0] += 1;
+
+                if gold_headidx != parser_headidx || gold_deprel != parser_deprel ||
+                    gold_head_headidx != parser_head_headidx || gold_head_deprel != parser_head_deprel {
+                    value[1] += 1;
+                    /*
+                    for token in gold_sent.iter() {
+                        eprint!("{} ", token.form());
+                    }
+                    eprintln!("\nGold: {} - {} - {} - {}", gold_headidx, gold_deprel, gold_head_headidx, gold_head_deprel);
+                    eprintln!("Parser: {} - {} - {} - {}", parser_headidx, parser_deprel, parser_head_headidx, parser_head_deprel);
+                    eprintln!();
+                    */
+                }
+            }
+        }
+    }
+}

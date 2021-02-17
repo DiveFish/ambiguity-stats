@@ -7,7 +7,7 @@ pub fn recall(correct: usize, gold_count: usize) -> usize {
 }
 
 pub fn f1score(precision: usize, recall: usize) -> usize {
-    (2 * precision * recall) / (precision + recall)
+    2 ((precision * recall) / (precision + recall))
 }
 
 pub fn most_freq_toks(input: String, n_freq: usize) -> Vec<(String, usize)> {

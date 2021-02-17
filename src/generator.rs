@@ -7,14 +7,14 @@ use std::io::{self, Write};
 use std::path::Path;
 
 
-pub fn sentence_generator(
+pub fn sentence_generator_german(
     svo_triples: &Vec<Vec<String>>,
     properties: &Vec<String>,
     templates: &Vec<Vec<String>>,
     templates_aux: &Vec<Vec<String>>,
     templates_pp: &Vec<Vec<String>>,
     templates_aux_pp: &Vec<Vec<String>>,
-    v1_intro: &str,
+    v2_intro: &str,
     vl_intro: &str,
     filename: &str
 ) -> io::Result<()>  {
@@ -23,7 +23,7 @@ pub fn sentence_generator(
     for (svo_triple, property) in svo_triples.iter().zip(properties.iter()) {
 
         let aux = if svo_triple.len() > 4 {
-            if  is_aux(&svo_triple[4]) {
+            if is_aux(&svo_triple[4]) {
                 true
             } else {
                 false
@@ -37,12 +37,12 @@ pub fn sentence_generator(
                     sent_to_conll_gold(template_aux_pp, svo_triple, "VF[S]LK[V]MF[O]", property, aux, &mut file);
                 } else if template_aux_pp[0] == "O" {
                     sent_to_conll_gold(template_aux_pp, svo_triple, "VF[O]LK[V]MF[S]", property, aux, &mut file);
-                } else if template_aux_pp[0] == v1_intro && template_aux_pp[3] == "S" {
+                } else if template_aux_pp[0] == v2_intro && template_aux_pp[3] == "S" {
                     if svo_triple[0].starts_with("?") {
                         continue;
                     }
                     sent_to_conll_gold(template_aux_pp, svo_triple, "VF[ADV]LK[V]MF[SO]", property, aux, &mut file);
-                } else if template_aux_pp[0] == v1_intro && template_aux_pp[3] == "O" {
+                } else if template_aux_pp[0] == v2_intro && template_aux_pp[3] == "O" {
                     if svo_triple[0].starts_with("*") {
                         continue;
                     }
@@ -75,12 +75,12 @@ pub fn sentence_generator(
                     sent_to_conll_gold(template_aux, svo_triple, "VF[S]LK[V]MF[O]", property, aux, &mut file);
                 } else if template_aux[0] == "O" {
                     sent_to_conll_gold(template_aux, svo_triple, "VF[O]LK[V]MF[S]", property, aux, &mut file);
-                } else if template_aux[0] == v1_intro && template_aux[2] == "S" {
+                } else if template_aux[0] == v2_intro && template_aux[2] == "S" {
                     if svo_triple[0].starts_with("?") {
                         continue;
                     }
                     sent_to_conll_gold(template_aux, svo_triple, "VF[ADV]LK[V]MF[SO]", property, aux, &mut file);
-                } else if template_aux[0] == v1_intro && template_aux[2] == "O" {
+                } else if template_aux[0] == v2_intro && template_aux[2] == "O" {
                     if svo_triple[0].starts_with("*") {
                         continue;
                     }
@@ -113,12 +113,12 @@ pub fn sentence_generator(
                     sent_to_conll_gold(template_pp, svo_triple, "VF[S]LK[V]MF[O]", property, aux, &mut file);
                 } else if template_pp[0] == "O" {
                     sent_to_conll_gold(template_pp, svo_triple, "VF[O]LK[V]MF[S]", property, aux, &mut file);
-                } else if template_pp[0] == v1_intro && template_pp[3] == "S" {
+                } else if template_pp[0] == v2_intro && template_pp[3] == "S" {
                     if svo_triple[0].starts_with("?") {
                         continue;
                     }
                     sent_to_conll_gold(template_pp, svo_triple, "VF[ADV]LK[V]MF[SO]", property, aux, &mut file);
-                } else if template_pp[0] == v1_intro && template_pp[3] == "O" {
+                } else if template_pp[0] == v2_intro && template_pp[3] == "O" {
                     if svo_triple[0].starts_with("*") {
                         continue;
                     }
@@ -152,12 +152,12 @@ pub fn sentence_generator(
                     sent_to_conll_gold(template, svo_triple, "VF[S]LK[V]MF[O]", property, aux, &mut file);
                 } else if template[0] == "O" {
                     sent_to_conll_gold(template, svo_triple, "VF[O]LK[V]MF[S]", property, aux, &mut file);
-                } else if template[0] == v1_intro && template[2] == "S" {
+                } else if template[0] == v2_intro && template[2] == "S" {
                     if svo_triple[0].starts_with("?") {
                         continue;
                     }
                     sent_to_conll_gold(template, svo_triple, "VF[ADV]LK[V]MF[SO]", property, aux, &mut file);
-                } else if template[0] == v1_intro && template[2] == "O" {
+                } else if template[0] == v2_intro && template[2] == "O" {
                     if svo_triple[0].starts_with("*") {
                         continue;
                     }
@@ -182,6 +182,94 @@ pub fn sentence_generator(
                         continue;
                     }
                     sent_to_conll_gold(template, svo_triple, "MF[OS]VC[V]", property, aux, &mut file);
+                }
+            }
+        } else {
+            eprintln!("Sentence length {} not supported.", svo_triple.len());
+        }
+    }
+    Ok(())
+}
+
+pub fn sentence_generator_dutch(
+    svo_triples: &Vec<Vec<String>>,
+    properties: &Vec<String>,
+    templates: &Vec<Vec<String>>,
+    templates_aux: &Vec<Vec<String>>,
+    templates_pp: &Vec<Vec<String>>,
+    templates_aux_pp: &Vec<Vec<String>>,
+    v2_intro: &str,
+    vl_intro: &str,
+    filename: &str
+) -> io::Result<()>  {
+    let mut file = File::create(filename)?;
+
+    for (svo_triple, property) in svo_triples.iter().zip(properties.iter()) {
+
+        let aux = if svo_triple.len() > 4 {
+            if is_aux(&svo_triple[4]) {
+                true
+            } else {
+                false
+            }
+        } else {
+            false
+        };
+        if svo_triple.len() == 6 {    // Auxiliary and PP
+            for template_aux_pp in templates_aux_pp {
+                if template_aux_pp[0] == "S" {
+                    sent_to_conll_gold(template_aux_pp, svo_triple, "VF[S]LK[V]MF[O]", property, aux, &mut file);
+                } else if template_aux_pp[0] == "O" {
+                    sent_to_conll_gold(template_aux_pp, svo_triple, "VF[O]LK[V]MF[S]", property, aux, &mut file);
+                } else if template_aux_pp[0] == v2_intro && template_aux_pp[2] == "S" {
+                    sent_to_conll_gold(template_aux_pp, svo_triple, "VF[ADV]LK[V]MF[SO]", property, aux, &mut file);
+                } else if template_aux_pp[0] == "VAUX" && template_aux_pp[1] == "S" {
+                    sent_to_conll_gold(template_aux_pp, svo_triple, "LK[V]MF[SO]", property, aux, &mut file);
+                } else if template_aux_pp[0] == vl_intro && template_aux_pp[1] == "S" {
+                    sent_to_conll_gold(template_aux_pp, svo_triple, "MF[SO]VC[V]", property, aux, &mut file);
+                }
+            }
+        } else if svo_triple.len() == 5 && aux {    // Auxiliary
+            for template_aux in templates_aux {
+                if template_aux[0] == "S" {
+                    sent_to_conll_gold(template_aux, svo_triple, "VF[S]LK[V]MF[O]", property, aux, &mut file);
+                } else if template_aux[0] == "O" {
+                    sent_to_conll_gold(template_aux, svo_triple, "VF[O]LK[V]MF[S]", property, aux, &mut file);
+                } else if template_aux[0] == v2_intro && template_aux[2] == "S" {
+                    sent_to_conll_gold(template_aux, svo_triple, "VF[ADV]LK[V]MF[SO]", property, aux, &mut file);
+                } else if template_aux[0] == "VAUX" && template_aux[1] == "S" {
+                    sent_to_conll_gold(template_aux, svo_triple, "LK[V]MF[SO]", property, aux, &mut file);
+                } else if template_aux[0] == vl_intro && template_aux[1] == "S" {
+                    sent_to_conll_gold(template_aux, svo_triple, "MF[SO]VC[V]", property, aux, &mut file);
+                }
+            }
+        } else if svo_triple.len() == 5 && !aux {    // PP
+            for template_pp in templates_pp {
+                if template_pp[0] == "S" {
+                    sent_to_conll_gold(template_pp, svo_triple, "VF[S]LK[V]MF[O]", property, aux, &mut file);
+                } else if template_pp[0] == "O" {
+                    sent_to_conll_gold(template_pp, svo_triple, "VF[O]LK[V]MF[S]", property, aux, &mut file);
+                } else if template_pp[0] == v2_intro && template_pp[2] == "S" {
+                    sent_to_conll_gold(template_pp, svo_triple, "VF[ADV]LK[V]MF[SO]", property, aux, &mut file);
+                } else if template_pp[0] == "V" && template_pp[1] == "S" {
+                    sent_to_conll_gold(template_pp, svo_triple, "LK[V]MF[SO]", property, aux, &mut file);
+                } else if template_pp[0] == vl_intro && template_pp[1] == "S" {
+                    sent_to_conll_gold(template_pp, svo_triple, "MF[SO]VC[V]", property, aux, &mut file);
+                }
+            }
+        } else if svo_triple.len() == 4 {
+            for template in templates {
+
+                if template[0] == "S" {
+                    sent_to_conll_gold(template, svo_triple, "VF[S]LK[V]MF[O]", property, aux, &mut file);
+                } else if template[0] == "O" {
+                    sent_to_conll_gold(template, svo_triple, "VF[O]LK[V]MF[S]", property, aux, &mut file);
+                } else if template[0] == v2_intro && template[2] == "S" {
+                    sent_to_conll_gold(template, svo_triple, "VF[ADV]LK[V]MF[SO]", property, aux, &mut file);
+                } else if template[0] == "V" && template[1] == "S" {
+                    sent_to_conll_gold(template, svo_triple, "LK[V]MF[SO]", property, aux, &mut file);
+                } else if template[0] == vl_intro && template[1] == "S" {
+                    sent_to_conll_gold(template, svo_triple, "MF[SO]VC[V]", property, aux, &mut file);
                 }
             }
         } else {
@@ -398,7 +486,7 @@ pub fn filter(text: Vec<Vec<Token>>, props_allowed: &[&str]) {
     }
 }
 
-
+/// Postprocessing to filter undesired orders which were previously included in the experiments.
 pub fn filter_gold(text: Vec<Vec<Token>>, props_allowed: &[&str]) {
     for sent in text {
         let mut first = true;
