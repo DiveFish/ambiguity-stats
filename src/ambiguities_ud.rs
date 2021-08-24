@@ -141,7 +141,7 @@ pub fn pp_head_same_label_ambigs(
 /// Prepositional phrase attachment with (in)correct labels, assuming that
 /// the head of the phrase has been attached correctly. Otherwise,
 /// labels cannot be expected to be identical to the gold parse.
-//TODO: Check if "case" relation should be included as a condition for PPs
+//TODO: Add "case" relation as a condition for PPs
 pub fn pp_label_same_head_ambigs(
     overall_pps: &mut usize,
     errors: &mut usize,
@@ -451,3 +451,34 @@ pub fn pp_preps_errs_ud(
     }
 }
 
+/// Get all prepositions and their head preference.
+/// Content of `preps`: frequency, verb heads, noun heads, other heads
+pub fn pp_objs_ud(
+    prep_objs: &mut HashMap<String, usize>,
+    gold_sent: &[Token],
+) {
+    for i in 0..gold_sent.len() {
+        let gold_token = &gold_sent[i];
+        let gold_pos = gold_token.pos().expect("No PoS");
+        let gold_deprel = gold_token.head_rel().expect("No deprel");
+        let mut gold_headidx = gold_token.head().expect("No head");
+        if gold_headidx == 0 {
+            continue;
+        } else {
+            gold_headidx = gold_headidx - 1;
+        }
+        let gold_head_poses: Vec<&str> = gold_sent[gold_headidx].pos().expect("No PoS").split("-").collect();
+        let gold_head_pos = gold_head_poses[0];
+        let gold_head_deprel = gold_sent[gold_headidx].head_rel().expect("No deprel");
+
+        if gold_deprel == "case" &&
+            gold_pos.starts_with("ADP") &&
+            ( gold_head_deprel == "obl" || gold_head_deprel == "nmod" || gold_head_deprel == "root" ) {
+            let value = prep_objs
+                .entry(gold_head_pos.to_string())
+                .or_insert(0);
+            *value += 1;
+
+        }
+    }
+}

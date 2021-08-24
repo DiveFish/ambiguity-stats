@@ -33,8 +33,8 @@ pub fn main() {
     let golddatafile = matches.value_of("INPUT_GOLD").unwrap();
     let parserdatafile = matches.value_of("INPUT_NONGOLD").unwrap();
     let (golddata, parserdata) = read_gng_data(golddatafile, parserdatafile);
-    get_topofields(&golddata, true);
     /*
+    get_topofields(&golddata, true);
 
     let mut n_sent = 0;
     let mut n_token = 0;
@@ -72,7 +72,20 @@ pub fn main() {
     for (key, value) in preps.iter() {
         println!("{}; {}; {}; {}; {}", key, value[0], value[1], value[2], value[3]);
     }
+    */
 
+
+    // Get the distribution of PoS tags for the token following the preposition in the PP
+    let mut prep_objs: HashMap<String, usize> = HashMap::new();
+    for i in 0..golddata.len() {
+        pp_objs_ud(&mut prep_objs, &golddata[i]);
+    }
+    println!("Preposition object; Frequency");
+    for (key, value) in prep_objs.iter() {
+        println!("{}; {}", key, value);
+    }
+
+    /*
     //Get number of errors, number of verbal, nominal and other heads per preposition in an HDT treebank
     for i in 0..golddata.len() {
         pp_preps(&mut preps, &golddata[i], &parserdata[i]);
